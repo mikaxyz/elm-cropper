@@ -2,7 +2,7 @@ module Main exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick)
+import Html.Events exposing (onClick, onInput)
 import Cropper.Image as Cropper
 
 
@@ -22,6 +22,7 @@ main =
 
 type alias Model =
     { name : String
+    , zoom : String
     , cropperModel : Cropper.Model
     }
 
@@ -29,6 +30,7 @@ type alias Model =
 initialModel : Model
 initialModel =
     { name = "I am sand. Sand box."
+    , zoom = "1.0"
     , cropperModel = Cropper.initialModel
     }
 
@@ -44,6 +46,7 @@ init =
 
 type Msg
     = Set String
+    | Zoom String
     | CropperMsg Cropper.Msg
 
 
@@ -52,6 +55,9 @@ update msg model =
     case msg of
         Set to ->
             ( model, Cmd.none )
+
+        Zoom zoom ->
+            ( { model | zoom = zoom }, Cmd.none )
 
         CropperMsg subMsg ->
             let
@@ -80,4 +86,13 @@ view model =
         [ h4 [] [ text model.name ]
         , div [ class "section" ] [ Html.map CropperMsg <| Cropper.view model.cropperModel ]
         , a [ class "button", onClick <| CropperMsg <| Cropper.SetImageUrl "https://i.ytimg.com/vi/opKg3fyqWt4/hqdefault.jpg" ] [ text "Make pup" ]
+        , zoomWidget model
+        ]
+
+
+zoomWidget : Model -> Html Msg
+zoomWidget model =
+    div []
+        [ h4 [] [ text <| "ZOOM: " ++ model.zoom ]
+        , input [ onInput Zoom, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.01", value model.zoom ] []
         ]
