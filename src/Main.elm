@@ -57,7 +57,7 @@ update msg model =
             ( model, Cmd.none )
 
         Zoom zoom ->
-            ( { model | zoom = zoom }, Cmd.none )
+            update (CropperMsg <| Cropper.SetZoom (Result.withDefault 0 (String.toFloat zoom))) { model | zoom = zoom }
 
         CropperMsg subMsg ->
             let
@@ -94,5 +94,5 @@ zoomWidget : Model -> Html Msg
 zoomWidget model =
     div []
         [ h4 [] [ text <| "ZOOM: " ++ model.zoom ]
-        , input [ onInput Zoom, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.01", value model.zoom ] []
+        , input [ style [ ( "width", "50%" ) ], onInput Zoom, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value model.zoom ] []
         ]

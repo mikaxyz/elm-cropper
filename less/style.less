@@ -4,27 +4,24 @@ body {
 	padding: 0;
 	background: orange;
 	color: chartreuse;
-	width: 100%;
-	height: 100%;
 	font-family: "Fixedsys Excelsior";
 	font-size: 30px;
 	text-align: center;
 }
-.section {
-	width: 360px;
-	height: 360px;
-	margin: 0 auto;
-	overflow: hidden;
-
-	img {
-		max-width: 100%;
-	}
-}
-
 
 .button {
 	cursor: pointer;
 	background-color: indianred;
 	padding: 1em 2em;
 	color: aquamarine;
+	display: inline-block;
+}
+
+.cropper {
+	background-color: tomato;
+
+	&__area {
+		background-color: mediumspringgreen;
+		margin: auto;
+	}
 }
