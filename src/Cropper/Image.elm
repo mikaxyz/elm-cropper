@@ -24,15 +24,15 @@ type alias Model =
 
 cropBox : Box
 cropBox =
-    { width = 460
-    , height = 320
+    { width = 400
+    , height = 300
     }
 
 
 naturalSize : Box
 naturalSize =
-    { width = 800
-    , height = 300
+    { width = 1600
+    , height = 1200
     }
 
 
@@ -89,8 +89,46 @@ cropperStyle box =
 imageStyle : Box -> Attribute Msg
 imageStyle dimensions =
     style
-        [ ( "width", toString dimensions.width ++ "px" )
-        , ( "height", toString dimensions.height ++ "px" )
+        [ ( "display", "block" )
+        , ( "width", toString dimensions.width ++ "%" )
+          --        , ( "height", toString dimensions.height ++ "px" )
+        ]
+
+
+imageStyleZoomed : Model -> Attribute Msg
+imageStyleZoomed model =
+    let
+        width =
+            Debug.log "width"
+                (toFloat model.naturalSize.width / toFloat model.crop.width)
+
+        height =
+            Debug.log "height"
+                (toFloat model.naturalSize.height / toFloat model.crop.height)
+
+        ratio =
+            Debug.log "ratio"
+                (1 / Basics.max width height)
+
+        max =
+            Debug.log "max"
+                (toFloat (model.naturalSize.width // model.crop.width))
+
+        min =
+            Debug.log "min"
+                (1 / toFloat (model.naturalSize.width // model.crop.width))
+
+        zoooom =
+            Debug.log "zoooom"
+                (toFloat (model.naturalSize.width // model.crop.width) * model.zoom)
+
+        normalizedZoom =
+            Debug.log "normalizedZoom"
+                (1 + (model.zoom * (max - 1)))
+    in
+        style
+            [ ( "width", toString (100.0 * normalizedZoom) ++ "%" )
+              --        , ( "height", toString dimensions.height ++ "px" )
         ]
 
 
@@ -98,7 +136,7 @@ view : Model -> Html Msg
 view model =
     div [ class "cropper" ]
         [ div [ cropperStyle model.crop, class "cropper__area" ]
-            [ img [ imageStyle <| model.zoomedSize model.zoom, src model.imageUrl ] []
+            [ img [ imageStyleZoomed model, src model.imageUrl ] []
             ]
         , p [] [ text <| "ZOOM: " ++ (toString model.zoom) ]
         ]
