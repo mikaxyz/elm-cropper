@@ -7,6 +7,12 @@ import Html.Attributes exposing (..)
 -- MODEL
 
 
+type alias Pivot =
+    { x : Float
+    , y : Float
+    }
+
+
 type alias Box =
     { width : Int
     , height : Int
@@ -19,20 +25,14 @@ type alias Model =
     , zoom : Float
     , naturalSize : Box
     , zoomedSize : Float -> Box
-    }
-
-
-cropBox : Box
-cropBox =
-    { width = 400
-    , height = 300
+    , pivot : Pivot
     }
 
 
 naturalSize : Box
 naturalSize =
-    { width = 1600
-    , height = 1200
+    { width = 1024
+    , height = 1024
     }
 
 
@@ -46,11 +46,18 @@ zoomedSize zoom =
 
 initialModel : Model
 initialModel =
-    { imageUrl = "/assets/30192_1600x1200-4-cute-cats.jpg"
-    , crop = cropBox
-    , zoom = 1.0
+    { imageUrl = "/assets/burosch-1024x1024.jpg"
+    , crop =
+        { width = 320
+        , height = 120
+        }
+    , zoom = 0.0
     , naturalSize = naturalSize
     , zoomedSize = zoomedSize
+    , pivot =
+        { x = 0.5
+        , y = 0.5
+        }
     }
 
 
@@ -60,6 +67,8 @@ initialModel =
 
 type Msg
     = SetImageUrl String
+    | SetPivotX Float
+    | SetPivotY Float
     | SetZoom Float
 
 
@@ -72,6 +81,12 @@ update msg model =
         SetZoom zoom ->
             ( { model | zoom = zoom }, Cmd.none )
 
+        SetPivotX x ->
+            ( { model | pivot = { y = model.pivot.y, x = x } }, Cmd.none )
+
+        SetPivotY y ->
+            ( { model | pivot = { y = y, x = model.pivot.x } }, Cmd.none )
+
 
 
 -- VIEW
@@ -82,7 +97,7 @@ cropperStyle box =
     style
         [ ( "width", toString box.width ++ "px" )
         , ( "height", toString box.height ++ "px" )
-        , ( "overflow", "hidden" )
+          --        , ( "overflow", "hidden" )
         ]
 
 
@@ -98,38 +113,62 @@ imageStyle dimensions =
 imageStyleZoomed : Model -> Attribute Msg
 imageStyleZoomed model =
     let
-        width =
-            Debug.log "width"
-                (toFloat model.naturalSize.width / toFloat model.crop.width)
+        --        width =
+        --            --            Debug.log "width"
+        --            (toFloat model.naturalSize.width / toFloat model.crop.width)
+        --
+        --        height =
+        --            --            Debug.log "height"
+        --            (toFloat model.naturalSize.height / toFloat model.crop.height)
+        --
+        --        ratio =
+        --            --            Debug.log "ratio"
+        --            (1 / Basics.max width height)
+        --
+        --        max =
+        --            --            Debug.log "max"
+        --            (toFloat (model.naturalSize.width // model.crop.width))
+        --
+        --        min =
+        --            --            Debug.log "min"
+        --            (1 / toFloat (model.naturalSize.width // model.crop.width))
+        --
+        --        diffY =
+        --            Debug.log "diffY"
+        --                (toFloat model.crop.height / toFloat model.naturalSize.height)
+        --
+        --        normalizedZoom =
+        --            Debug.log "normalizedZoom"
+        --                (1 + (model.zoom * ((toFloat (model.naturalSize.width // model.crop.width)) - 1)))
+        normalizedZoomH =
+            --            Debug.log "normalizedZoomH"
+            (1 + (model.zoom * ((toFloat (model.naturalSize.width // model.crop.width)) - 1)))
 
-        height =
-            Debug.log "height"
-                (toFloat model.naturalSize.height / toFloat model.crop.height)
-
-        ratio =
-            Debug.log "ratio"
-                (1 / Basics.max width height)
-
-        max =
-            Debug.log "max"
-                (toFloat (model.naturalSize.width // model.crop.width))
-
-        min =
-            Debug.log "min"
-                (1 / toFloat (model.naturalSize.width // model.crop.width))
-
-        zoooom =
-            Debug.log "zoooom"
-                (toFloat (model.naturalSize.width // model.crop.width) * model.zoom)
+        normalizedZoomV =
+            --            Debug.log "normalizedZoomV"
+            (1 + (model.zoom * ((toFloat (model.naturalSize.height // model.crop.height)) - 1)))
 
         normalizedZoom =
-            Debug.log "normalizedZoom"
-                (1 + (model.zoom * (max - 1)))
+            --            Debug.log "normalizedZoom"
+            (Basics.min normalizedZoomH normalizedZoomV)
+
+        diffY =
+            Debug.log "diffY"
+                ((toFloat model.naturalSize.height / toFloat model.crop.height) / normalizedZoomH)
+
+        marginX =
+            (100.0 * model.pivot.x) - (100.0 * model.pivot.x * normalizedZoomH)
+
+        marginY =
+            (100.0 * model.pivot.y) - (100.0 * model.pivot.y * normalizedZoomV)
     in
         style
-            [ ( "width", toString (100.0 * normalizedZoom) ++ "%" )
-              --        , ( "height", toString dimensions.height ++ "px" )
-        ]
+            [ ( "position", "relative" )
+            , ( "opacity", "0.5" )
+            , ( "width", toString (100.0 * normalizedZoom) ++ "%" )
+            , ( "left", toString marginX ++ "%" )
+            , ( "top", toString marginY ++ "%" )
+            ]
 
 
 view : Model -> Html Msg
@@ -138,5 +177,5 @@ view model =
         [ div [ cropperStyle model.crop, class "cropper__area" ]
             [ img [ imageStyleZoomed model, src model.imageUrl ] []
             ]
-        , p [] [ text <| "ZOOM: " ++ (toString model.zoom) ]
+          --        , p [] [ text <| "ZOOM: " ++ (toString model.zoom) ]
         ]

@@ -22,7 +22,6 @@ main =
 
 type alias Model =
     { name : String
-    , zoom : String
     , cropperModel : Cropper.Model
     }
 
@@ -30,7 +29,6 @@ type alias Model =
 initialModel : Model
 initialModel =
     { name = "I am sand. Sand box."
-    , zoom = "1.0"
     , cropperModel = Cropper.initialModel
     }
 
@@ -47,6 +45,8 @@ init =
 type Msg
     = Set String
     | Zoom String
+    | PivotX String
+    | PivotY String
     | CropperMsg Cropper.Msg
 
 
@@ -57,7 +57,13 @@ update msg model =
             ( model, Cmd.none )
 
         Zoom zoom ->
-            update (CropperMsg <| Cropper.SetZoom (Result.withDefault 0 (String.toFloat zoom))) { model | zoom = zoom }
+            update (CropperMsg <| Cropper.SetZoom (Result.withDefault 0 (String.toFloat zoom))) model
+
+        PivotX x ->
+            update (CropperMsg <| Cropper.SetPivotX (Result.withDefault 0 (String.toFloat x))) model
+
+        PivotY y ->
+            update (CropperMsg <| Cropper.SetPivotY (Result.withDefault 0 (String.toFloat y))) model
 
         CropperMsg subMsg ->
             let
@@ -85,14 +91,16 @@ view model =
     div []
         [ h4 [] [ text model.name ]
         , div [ class "section" ] [ Html.map CropperMsg <| Cropper.view model.cropperModel ]
-        , a [ class "button", onClick <| CropperMsg <| Cropper.SetImageUrl "https://i.ytimg.com/vi/opKg3fyqWt4/hqdefault.jpg" ] [ text "Make pup" ]
+          --        , a [ class "button", onClick <| CropperMsg <| Cropper.SetImageUrl "https://i.ytimg.com/vi/opKg3fyqWt4/hqdefault.jpg" ] [ text "Make pup" ]
         , zoomWidget model
         ]
 
 
 zoomWidget : Model -> Html Msg
 zoomWidget model =
-    div []
-        [ h4 [] [ text <| "ZOOM: " ++ model.zoom ]
-        , input [ style [ ( "width", "50%" ) ], onInput Zoom, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value model.zoom ] []
+    div [ class "cropper__controls" ]
+        [ h4 [] [ text <| "ZOOM: " ++ (toString model.cropperModel.zoom) ]
+        , input [ style [ ( "width", "50%" ) ], onInput Zoom, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString model.cropperModel.zoom) ] []
+        , input [ style [ ( "width", "50%" ) ], onInput PivotX, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString model.cropperModel.pivot.x) ] [ text "asdas" ]
+        , input [ style [ ( "width", "50%" ) ], onInput PivotY, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString model.cropperModel.pivot.y) ] []
         ]

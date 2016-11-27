@@ -3,10 +3,21 @@ body {
 	margin: 0;
 	padding: 0;
 	background: orange;
-	color: chartreuse;
+	color: black;
 	font-family: "Fixedsys Excelsior";
 	font-size: 30px;
 	text-align: center;
+	overflow: hidden;
+	height: 100%;
+}
+
+
+body {
+	background: lightcyan;
+	background-size: 10px 10px;
+	background-image:
+			linear-gradient(to right, fade(black, 10%) 1px, transparent 1px),
+			linear-gradient(to bottom, fade(black, 10%) 1px, transparent 1px);
 }
 
 .button {
@@ -19,9 +30,25 @@ body {
 
 .cropper {
 	background-color: tomato;
+	//margin-top: 300px;
+
+	&__controls {
+		position: absolute;
+		z-index: 99999;
+		z-index: 1000;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		background-color: fade(black, 8%);
+	}
+
+	img {
+		display: block;
+	}
 
 	&__area {
 		background-color: mediumspringgreen;
 		margin: auto;
+		padding: 1px;
 	}
 }
