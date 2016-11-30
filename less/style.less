@@ -2,18 +2,15 @@ html,
 body {
 	margin: 0;
 	padding: 0;
-	background: orange;
 	color: black;
 	font-family: "Fixedsys Excelsior";
 	font-size: 30px;
 	text-align: center;
-	overflow: hidden;
-	height: 100%;
 }
 
 
 body {
-	background: lightcyan;
+	background-color: lightcyan;
 	background-size: 10px 10px;
 	background-image:
 			linear-gradient(to right, fade(black, 10%) 1px, transparent 1px),
@@ -30,9 +27,10 @@ body {
 
 .cropper {
 	background-color: tomato;
+	margin: auto;
 
 	&__controls {
-		position: absolute;
+		position: fixed;
 		z-index: 99999;
 		z-index: 1000;
 		bottom: 0;
@@ -46,8 +44,10 @@ body {
 	}
 
 	&__area {
+		position: relative;
+		height: 0;
+		overflow: hidden;
+		max-width: 100%;
 		background-color: mediumspringgreen;
-		margin: auto;
-		padding: 1px;
 	}
 }

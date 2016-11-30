@@ -81,18 +81,7 @@ update msg model =
 cropperStyle : Box -> Attribute Msg
 cropperStyle box =
     style
-        [ ( "width", toString box.width ++ "px" )
-        , ( "height", toString box.height ++ "px" )
-        , ( "overflow", "hidden" )
-        ]
-
-
-imageStyle : Box -> Attribute Msg
-imageStyle dimensions =
-    style
-        [ ( "display", "block" )
-        , ( "width", toString dimensions.width ++ "%" )
-          --        , ( "height", toString dimensions.height ++ "px" )
+        [ ( "padding-bottom", toString (100.0 * toFloat box.height / toFloat box.width) ++ "%" )
         ]
 
 
@@ -123,7 +112,7 @@ imageStyleZoomed model =
             Debug.log "posY" (-(pHeight - 100.0) * model.pivot.y)
     in
         style
-            [ ( "position", "relative" )
+            [ ( "position", "absolute" )
             , ( "width", toString pWidth ++ "%" )
             , ( "height", toString pHeight ++ "%" )
             , ( "left", toString posX ++ "%" )
@@ -133,7 +122,7 @@ imageStyleZoomed model =
 
 view : Model -> Html Msg
 view model =
-    div [ class "cropper" ]
+    div [ class "cropper", style [ ( "max-width", toString model.crop.width ++ "px" ) ] ]
         [ div [ cropperStyle model.crop, class "cropper__area" ]
             [ img [ imageStyleZoomed model, src model.imageUrl ] []
             ]
