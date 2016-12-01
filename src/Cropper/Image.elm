@@ -1,7 +1,11 @@
 module Cropper.Image exposing (..)
 
+import Util.Debug exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (on)
+import Json.Decode as Decode
+import Mouse exposing (Position)
 
 
 -- MODEL
@@ -19,12 +23,25 @@ type alias Box =
     }
 
 
+type alias Drag =
+    { start : Position
+    , current : Position
+    }
+
+
+type alias MouseInput =
+    { position : Position
+    , drag : Maybe Drag
+    }
+
+
 type alias Model =
     { imageUrl : String
     , crop : Box
     , zoom : Float
     , naturalSize : Box
     , pivot : Pivot
+    , mouseInput : MouseInput
     }
 
 
@@ -35,7 +52,7 @@ initialModel =
         { width = 820
         , height = 312
         }
-    , zoom = 0.0
+    , zoom = 0.5
     , naturalSize =
         { width = 1600
         , height = 1200
@@ -43,6 +60,10 @@ initialModel =
     , pivot =
         { x = 0.5
         , y = 0.5
+        }
+    , mouseInput =
+        { position = Position 200 200
+        , drag = Nothing
         }
     }
 
@@ -56,6 +77,9 @@ type Msg
     | SetPivotX Float
     | SetPivotY Float
     | SetZoom Float
+    | DragStart Position
+    | DragAt Position
+    | DragEnd Position
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -73,6 +97,62 @@ update msg model =
         SetPivotY y ->
             ( { model | pivot = { y = y, x = model.pivot.x } }, Cmd.none )
 
+        DragStart position ->
+            let
+                _ =
+                    debugOff "DragStart" position
+            in
+                ( { model | mouseInput = { position = position, drag = Just (Drag position position) } }, Cmd.none )
+
+        DragAt position ->
+            let
+                _ =
+                    debugOn "DragAt" position
+
+                drag : Drag
+                drag =
+                    case model.mouseInput.drag of
+                        Just drag ->
+                            drag
+
+                        Nothing ->
+                            Drag position position
+
+                dragX =
+                    debugOff "dragX" (drag.start.x - position.x)
+
+                dragY =
+                    debugOff "dragY" (drag.start.y - position.y)
+
+                pivotX =
+                    debugOff "pivotX" (Basics.max 0 (0.5 + (toFloat dragX / toFloat model.crop.width)))
+
+                pivotY =
+                    debugOff "pivotY" (Basics.max 0 (0.5 + (toFloat dragY / toFloat model.crop.height)))
+            in
+                ( { model | pivot = { x = pivotX, y = pivotY }, mouseInput = { position = position, drag = Just drag } }, Cmd.none )
+
+        DragEnd position ->
+            let
+                _ =
+                    debugOff "DragEnd" position
+            in
+                ( { model | mouseInput = { position = position, drag = Nothing } }, Cmd.none )
+
+
+
+-- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    case model.mouseInput.drag of
+        Nothing ->
+            debugOff "NoDrag" Sub.none
+
+        Just _ ->
+            debugOff "Drag" (Sub.batch [ Mouse.moves DragAt, Mouse.ups DragEnd ])
+
 
 
 -- VIEW
@@ -89,30 +169,31 @@ imageStyleZoomed : Model -> Attribute Msg
 imageStyleZoomed model =
     let
         ratioH =
-            Debug.log "ratioH" (toFloat model.naturalSize.width / toFloat model.crop.width)
+            debug "ratioH" (toFloat model.naturalSize.width / toFloat model.crop.width)
 
         ratioV =
-            Debug.log "ratioV" (toFloat model.naturalSize.height / toFloat model.crop.height)
+            debug "ratioV" (toFloat model.naturalSize.height / toFloat model.crop.height)
 
         ratioMin =
-            Debug.log "ratioMin" (Basics.min ratioH ratioV)
+            debug "ratioMin" (Basics.min ratioH ratioV)
 
         -- ZOOM
         pWidth =
-            Debug.log "pWidth" ((100.0 * ratioH / ratioMin) * (1 + model.zoom))
+            debug "pWidth" ((100.0 * ratioH / ratioMin) * (1 + model.zoom))
 
         pHeight =
-            Debug.log "pHeight" ((100.0 * ratioV / ratioMin) * (1 + model.zoom))
+            debug "pHeight" ((100.0 * ratioV / ratioMin) * (1 + model.zoom))
 
         -- ORIGIN
         posX =
-            Debug.log "posX" (-(pWidth - 100.0) * model.pivot.x)
+            debug "posX" (-(pWidth - 100.0) * model.pivot.x)
 
         posY =
-            Debug.log "posY" (-(pHeight - 100.0) * model.pivot.y)
+            debug "posY" (-(pHeight - 100.0) * model.pivot.y)
     in
         style
             [ ( "position", "absolute" )
+            , ( "pointer-events", "none" )
             , ( "width", toString pWidth ++ "%" )
             , ( "height", toString pHeight ++ "%" )
             , ( "left", toString posX ++ "%" )
@@ -123,7 +204,14 @@ imageStyleZoomed model =
 view : Model -> Html Msg
 view model =
     div [ class "cropper", style [ ( "max-width", toString model.crop.width ++ "px" ) ] ]
-        [ div [ cropperStyle model.crop, class "cropper__area" ]
+        [ div [ onMouseDown, cropperStyle model.crop, class "cropper__area" ]
             [ img [ imageStyleZoomed model, src model.imageUrl ] []
             ]
         ]
+
+
+{-| TODO: Understand why I can not use Html.Events.onMouseDown DragStart...
+-}
+onMouseDown : Attribute Msg
+onMouseDown =
+    on "mousedown" (Decode.map DragStart Mouse.position)
