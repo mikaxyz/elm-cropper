@@ -8,6 +8,13 @@
 </head>
 <body>
 <script src="/dist/js/app.js"></script>
-<script>Elm.Main.fullscreen();</script>
+<script>
+	let url = new URL(window.location);
+	if (url.pathname.indexOf("sandbox") > -1) {
+		Elm.Sandbox.fullscreen();
+	} else {
+		Elm.Main.fullscreen();
+	}
+</script>
 </body>
 </html>
