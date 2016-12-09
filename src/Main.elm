@@ -3,9 +3,11 @@ module Main exposing (..)
 import Util.Debug exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick, onInput, onMouseDown, onMouseUp)
+import Html.Events exposing (on, onClick, onInput, onMouseDown, onMouseUp)
 import Cropper.Image as Cropper
 import Cropper.Mouse as Mouse
+import Util.DOM as Dom exposing (..)
+import Json.Decode exposing (Decoder)
 
 
 main : Program Never Model Msg
@@ -26,6 +28,7 @@ type alias Model =
     { name : String
     , cropperModel : Cropper.Model
     , mouseModel : Mouse.Model
+    , boundingClientRect : Dom.Rectangle
     }
 
 
@@ -34,6 +37,7 @@ initialModel =
     { name = "I am sand. Sand box."
     , cropperModel = Cropper.initialModel
     , mouseModel = Mouse.initialModel
+    , boundingClientRect = Dom.Rectangle 0 0 0 0
     }
 
 
@@ -53,11 +57,24 @@ type Msg
     | PivotY String
     | CropperMsg Cropper.Msg
     | MouseMsg Mouse.Msg
+    | Measure Dom.Rectangle
+
+
+measureWidth : Dom.Rectangle -> Float
+measureWidth rect =
+    rect.width - rect.left
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        Measure rect ->
+            let
+                _ =
+                    debugOn "Measure" rect
+            in
+                ( { model | boundingClientRect = rect }, Cmd.none )
+
         Set to ->
             ( model, Cmd.none )
 
@@ -131,11 +148,16 @@ subscriptions model =
 -- VIEW
 
 
+measureElement : Decoder Msg
+measureElement =
+    Json.Decode.map Measure (Dom.target <| Dom.childNode 0 <| Dom.boundingClientRect)
+
+
 view : Model -> Html Msg
 view model =
     div []
         [ h4 [] [ text model.name ]
-        , div [ onMouseDown (MouseMsg Mouse.StartDrag), onMouseUp (MouseMsg Mouse.StopDrag), class "section" ] [ Html.map CropperMsg <| Cropper.view model.cropperModel ]
+        , div [ on "mouseenter" measureElement, onMouseDown (MouseMsg Mouse.StartDrag), onMouseUp (MouseMsg Mouse.StopDrag), class "section" ] [ Html.map CropperMsg <| Cropper.view model.cropperModel ]
           --        , a [ class "button", onClick <| CropperMsg <| Cropper.SetImageUrl "https://i.ytimg.com/vi/opKg3fyqWt4/hqdefault.jpg" ] [ text "Make pup" ]
         , zoomWidget model
         ]
