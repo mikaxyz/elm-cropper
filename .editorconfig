@@ -10,6 +10,6 @@ trim_trailing_whitespace = true
 indent_style = tab
 
 # 4 space indentation
-[*.elm]
+[{*.elm,elm-package.json}]
 indent_style = space
 indent_size = 4

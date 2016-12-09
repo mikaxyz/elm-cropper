@@ -4,11 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "elm-test"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "elm": "^0.18.0"
+    "elm": "^0.18.0",
+    "elm-test": "^0.18.2"
   }
 }
