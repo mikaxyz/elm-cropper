@@ -138,11 +138,29 @@ getPivot model =
 
         Just { start, current } ->
             let
+                currentHeight =
+                    imageHeight model
+
+                currentWidth =
+                    imageWidth model
+
+                rangeX =
+                    debugOff "rangeX" (toFloat model.crop.width / (currentWidth - toFloat model.crop.width))
+
+                rangeY =
+                    debugOff "rangeY" (toFloat model.crop.height / (currentHeight - toFloat model.crop.height))
+
                 distance =
-                    debugOn "dragDistance" (dragDistance model.drag)
+                    debugOff "dragDistance" (dragDistance model.drag)
+
+                pivotX =
+                    (toFloat distance.x / model.boundingClientRect.width) * rangeX
+
+                pivotY =
+                    (toFloat distance.y / model.boundingClientRect.height) * rangeY
 
                 dragPivot =
-                    debugOn "dragPivot" (Pivot (toFloat distance.x / model.boundingClientRect.width) (toFloat distance.y / model.boundingClientRect.height))
+                    debugOff "dragPivot" (Pivot pivotX pivotY)
             in
                 Pivot
                     (Basics.clamp 0.0 1.0 (model.pivot.x + dragPivot.x))
@@ -225,3 +243,44 @@ view model =
 onMouseDown : Attribute Msg
 onMouseDown =
     on "mousedown" (Json.Decode.map DragStart Mouse.position)
+
+
+
+-- HELPERS
+
+
+type alias Vector =
+    { x : Float
+    , y : Float
+    }
+
+
+imageRatio : Model -> Vector
+imageRatio model =
+    Vector
+        (toFloat model.naturalSize.width / toFloat model.crop.width)
+        (toFloat model.naturalSize.height / toFloat model.crop.height)
+
+
+imageWidth : Model -> Float
+imageWidth model =
+    let
+        ratio =
+            imageRatio model
+
+        ratioMin =
+            Basics.min ratio.x ratio.y
+    in
+        toFloat model.crop.width * (ratio.x / ratioMin * (1 + model.zoom))
+
+
+imageHeight : Model -> Float
+imageHeight model =
+    let
+        ratio =
+            imageRatio model
+
+        ratioMin =
+            Basics.min ratio.x ratio.y
+    in
+        toFloat model.crop.height * (ratio.y / ratioMin * (1 + model.zoom))
