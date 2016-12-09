@@ -1,6 +1,7 @@
 module Cropper.Image exposing (..)
 
 import Util.Debug exposing (..)
+import Util.Round as Round
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (on)
@@ -49,7 +50,7 @@ initialModel =
         { width = 820
         , height = 312
         }
-    , zoom = 0.5
+    , zoom = 0.0
     , naturalSize =
         { width = 1600
         , height = 1200
@@ -66,7 +67,7 @@ initialModel =
 
 measureElement : Decoder Msg
 measureElement =
-    Json.Decode.map Measure (Dom.target <| Dom.childNode 0 <| Dom.boundingClientRect)
+    Json.Decode.map Measure (Dom.target <| Dom.boundingClientRect)
 
 
 
@@ -233,11 +234,30 @@ imageStyleZoomed model =
 
 view : Model -> Html Msg
 view model =
-    div [ on "mouseenter" measureElement, onMouseDown, class "cropper", style [ ( "max-width", toString model.crop.width ++ "px" ) ] ]
-        [ div [ cropperStyle model.crop, class "cropper__area" ]
-            [ img [ imageStyleZoomed model, src model.imageUrl ] []
+    div [ class "cropper" ]
+        [ div [ class "cropper__area", style [ ( "max-width", toString model.crop.width ++ "px" ) ] ]
+            [ div [ class "cropper__info" ] (sourceInfoItems model)
+            , div [ on "mouseenter" measureElement, onMouseDown, cropperStyle model.crop, class "cropper__frame" ] [ img [ imageStyleZoomed model, src model.imageUrl ] [] ]
+            , div [ class "cropper__info" ] (cropInfoItems model)
             ]
         ]
+
+
+sourceInfoItems : Model -> List (Html Msg)
+sourceInfoItems model =
+    [ span [] [ "W: " ++ toString model.naturalSize.width |> text ]
+    , span [] [ "H: " ++ toString model.naturalSize.height |> text ]
+    , span [ class "fill" ] [ "SRC: " ++ model.imageUrl |> text ]
+    ]
+
+
+cropInfoItems : Model -> List (Html Msg)
+cropInfoItems model =
+    [ span [] [ "W: " ++ Round.round 2 (imageWidth model) |> text ]
+    , span [] [ "H: " ++ Round.round 2 (imageHeight model) |> text ]
+    , span [] [ "X: " ++ toString (floor (cropOrigin model).x) |> text ]
+    , span [] [ "Y: " ++ toString (floor (cropOrigin model).y) |> text ]
+    ]
 
 
 onMouseDown : Attribute Msg
@@ -284,3 +304,15 @@ imageHeight model =
             Basics.min ratio.x ratio.y
     in
         toFloat model.crop.height * (ratio.y / ratioMin * (1 + model.zoom))
+
+
+cropOrigin : Model -> Vector
+cropOrigin model =
+    let
+        originX =
+            (getPivot model).x * imageWidth model
+
+        originY =
+            (getPivot model).y * imageHeight model
+    in
+        Vector originX originY

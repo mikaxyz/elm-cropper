@@ -1,3 +1,5 @@
+@color__eigengrau: #16161D;
+
 html,
 body {
 	margin: 0;
@@ -26,8 +28,6 @@ body {
 }
 
 .cropper {
-	background-color: tomato;
-	margin: auto;
 
 	* {
 		user-select: none;
@@ -43,11 +43,37 @@ body {
 		background-color: fade(black, 8%);
 	}
 
+	&__info {
+		background-color: fade(@color__eigengrau, 76%);
+		color: antiquewhite;
+		display: flex;
+		justify-content: space-around;
+		align-items: center;
+		font-size: 24px;
+		line-height: 30/24;
+
+		span {
+			flex: 0 0 25%;
+			white-space: nowrap;
+			overflow: auto;
+			text-overflow: ellipsis;
+			min-width: 0;
+		}
+
+		.fill {
+			flex-grow: 1;
+		}
+	}
+
 	img {
 		display: block;
 	}
 
 	&__area {
+		margin: auto;
+	}
+
+	&__frame {
 		position: relative;
 		height: 0;
 		overflow: hidden;
@@ -62,4 +88,11 @@ body {
 			cursor: grabbing;
 		}
 	}
+}
+
+
+.range--vertical {
+	margin-top: 50px;
+	transform: rotate(270deg);
+	-moz-transform: rotate(270deg); /*do same for other browsers if required*/
 }
