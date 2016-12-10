@@ -1,23 +1,20 @@
-module Tests.Cropper.Image exposing (..)
+module Test.Image.Util exposing (..)
 
 import Test exposing (..)
 import Expect
 import Fuzz exposing (list, int, tuple, string)
 import String
-import Cropper.Image as Image
+import Image.Types
+import Image.Util exposing (..)
 
 
-m =
-    Image.initialModel
-
-
-model : Image.Model
+model : Image.Types.Image
 model =
-    { m
+    { initialModel
         | zoom = 1.0
         , crop =
-            { width = 820
-            , height = 400
+            { width = 800
+            , height = 300
             }
         , naturalSize =
             { width = 1600
@@ -28,34 +25,34 @@ model =
 
 all : Test
 all =
-    describe "Cropper Test Suite"
-        [ describe "Image"
-            [ test "calculates correct size at min zoom" <|
+    describe "ImageCropper module"
+        [ describe "Image.Util.imageSize"
+            [ test "landscape image size at min zoom" <|
                 \() ->
                     Expect.equal
-                        (Image.imageWidth
+                        (Image.Util.imageSize
                             { model
                                 | zoom = 0.0
                             }
                         )
-                        820
-            , test "calculates correct size at medium zoom" <|
+                        { x = 800, y = 600 }
+            , test "landscape image size at medium zoom" <|
                 \() ->
                     Expect.equal
-                        (Image.imageWidth
+                        (Image.Util.imageSize
                             { model
                                 | zoom = 0.5
                             }
                         )
-                        1200
-            , test "calculates correct size at max zoom" <|
+                        { x = 1200, y = 900 }
+            , test "landscape image size at max zoom" <|
                 \() ->
                     Expect.equal
-                        (Image.imageWidth
+                        (Image.Util.imageSize
                             { model
                                 | zoom = 1.0
                             }
                         )
-                        1600
+                        { x = 1600, y = 1200 }
             ]
         ]

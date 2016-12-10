@@ -3,12 +3,12 @@ port module Main exposing (..)
 import Test exposing (..)
 import Test.Runner.Node exposing (run, TestProgram)
 import Json.Encode exposing (Value)
-import Tests.Cropper.Image
+import Test.Image.Util
 
 
 main : TestProgram
 main =
-    [ Tests.Cropper.Image.all
+    [ Test.Image.Util.all
     ]
         |> Test.concat
         |> run emit
