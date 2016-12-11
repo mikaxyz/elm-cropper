@@ -142,10 +142,10 @@ getPivot model =
         Just { start, current } ->
             let
                 currentHeight =
-                    imageHeight model
+                    (imageSize model.image).y
 
                 currentWidth =
-                    imageWidth model
+                    (imageSize model.image).x
 
                 rangeX =
                     debugOff "rangeX" (toFloat model.image.crop.width / (currentWidth - toFloat model.image.crop.width))
@@ -249,8 +249,8 @@ sourceInfoItems model =
 
 cropInfoItems : Model -> List (Html Msg)
 cropInfoItems model =
-    [ span [] [ "W: " ++ Round.round 2 (imageWidth model) |> text ]
-    , span [] [ "H: " ++ Round.round 2 (imageHeight model) |> text ]
+    [ span [] [ "W: " ++ Round.round 2 (imageSize model.image).x |> text ]
+    , span [] [ "H: " ++ Round.round 2 (imageSize model.image).y |> text ]
     , span [] [ "X: " ++ toString (floor (cropOrigin model.image).x) |> text ]
     , span [] [ "Y: " ++ toString (floor (cropOrigin model.image).y) |> text ]
     ]
@@ -263,30 +263,3 @@ onMouseDown =
         , preventDefault = True
         }
         (Json.Decode.map DragStart Mouse.position)
-
-
-
--- HELPERS
-
-
-type alias Vector =
-    { x : Float
-    , y : Float
-    }
-
-
-imageRatio : Model -> Vector
-imageRatio model =
-    Vector
-        (toFloat model.image.naturalSize.width / toFloat model.image.crop.width)
-        (toFloat model.image.naturalSize.height / toFloat model.image.crop.height)
-
-
-imageWidth : Model -> Float
-imageWidth model =
-    (imageSize model.image).x
-
-
-imageHeight : Model -> Float
-imageHeight model =
-    (imageSize model.image).y
