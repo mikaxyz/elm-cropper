@@ -2,7 +2,7 @@ module Image.Cropper exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (on)
+import Html.Events exposing (on, onWithOptions)
 import Json.Decode exposing (Decoder)
 import Mouse exposing (Position)
 
@@ -258,7 +258,11 @@ cropInfoItems model =
 
 onMouseDown : Attribute Msg
 onMouseDown =
-    on "mousedown" (Json.Decode.map DragStart Mouse.position)
+    onWithOptions "mousedown"
+        { stopPropagation = True
+        , preventDefault = True
+        }
+        (Json.Decode.map DragStart Mouse.position)
 
 
 
