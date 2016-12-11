@@ -38,15 +38,21 @@ imageRatio { crop, naturalSize } =
 imageSize { crop, naturalSize, zoom } =
     let
         ratio =
-            imageRatio { crop = crop, naturalSize = naturalSize }
+            debugOff "imageRatio" <| imageRatio { crop = crop, naturalSize = naturalSize }
 
         ratioMin =
-            Basics.min ratio.x ratio.y
+            debugOff "ratioMin" <| Basics.min ratio.x ratio.y
+
+        minWidth =
+            debugOff "minWidth" <| toFloat crop.width * (ratio.x / ratioMin)
+
+        minHeight =
+            debugOff "minHeight" <| toFloat crop.height * (ratio.y / ratioMin)
 
         width =
-            toFloat crop.width * (ratio.x / ratioMin * (1 + zoom))
+            minWidth + ((toFloat naturalSize.width - minWidth) * zoom)
 
         height =
-            toFloat crop.height * (ratio.y / ratioMin * (1 + zoom))
+            minHeight + ((toFloat naturalSize.height - minHeight) * zoom)
     in
         debugOff "imageSize" <| Vector width height
