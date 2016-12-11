@@ -251,8 +251,8 @@ cropInfoItems : Model -> List (Html Msg)
 cropInfoItems model =
     [ span [] [ "W: " ++ Round.round 2 (imageWidth model) |> text ]
     , span [] [ "H: " ++ Round.round 2 (imageHeight model) |> text ]
-    , span [] [ "X: " ++ toString (floor (cropOrigin model).x) |> text ]
-    , span [] [ "Y: " ++ toString (floor (cropOrigin model).y) |> text ]
+    , span [] [ "X: " ++ toString (floor (cropOrigin model.image).x) |> text ]
+    , span [] [ "Y: " ++ toString (floor (cropOrigin model.image).y) |> text ]
     ]
 
 
@@ -290,15 +290,3 @@ imageWidth model =
 imageHeight : Model -> Float
 imageHeight model =
     (imageSize model.image).y
-
-
-cropOrigin : Model -> Vector
-cropOrigin model =
-    let
-        originX =
-            (getPivot model).x * imageWidth model
-
-        originY =
-            (getPivot model).y * imageHeight model
-    in
-        Vector originX originY

@@ -52,3 +52,18 @@ imageSize { crop, naturalSize, zoom } =
             minHeight + ((toFloat naturalSize.height - minHeight) * zoom)
     in
         debugOff "imageSize" <| Vector width height
+
+
+cropOrigin : Image.Types.Image -> Vector
+cropOrigin image =
+    let
+        size =
+            imageSize image
+
+        x =
+            image.pivot.x * (size.x - toFloat image.crop.width)
+
+        y =
+            image.pivot.y * (size.y - toFloat image.crop.height)
+    in
+        debugOff "cropOrigin" <| Vector x y
