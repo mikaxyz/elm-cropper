@@ -29,12 +29,14 @@ type alias Vector =
     }
 
 
+imageRatio : { crop : Box, naturalSize : Box } -> Vector
 imageRatio { crop, naturalSize } =
     Vector
         (toFloat naturalSize.width / toFloat crop.width)
         (toFloat naturalSize.height / toFloat crop.height)
 
 
+imageSize : Image.Types.Image -> Vector
 imageSize { crop, naturalSize, zoom } =
     let
         ratio =
