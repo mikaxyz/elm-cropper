@@ -4,7 +4,7 @@ import Util.Debug exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
-import Cropper.Image as Cropper
+import Image.Cropper as Cropper
 
 
 main : Program Never Model Msg
@@ -101,8 +101,8 @@ view model =
 zoomWidget : Model -> Html Msg
 zoomWidget model =
     div [ class "cropper__controls" ]
-        [ h4 [] [ text <| "ZOOM: " ++ (toString model.cropperModel.zoom) ]
-        , input [ style [ ( "width", "50%" ) ], onInput Zoom, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString model.cropperModel.zoom) ] []
-        , input [ style [ ( "width", "50%" ) ], onInput PivotX, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString model.cropperModel.pivot.x) ] [ text "asdas" ]
-        , input [ style [ ( "width", "50%" ) ], onInput PivotY, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString model.cropperModel.pivot.y) ] []
+        [ h4 [] [ text <| "ZOOM: " ++ (toString model.cropperModel.image.zoom) ]
+        , input [ style [ ( "width", "50%" ) ], onInput Zoom, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString model.cropperModel.image.zoom) ] []
+        , input [ style [ ( "width", "50%" ) ], onInput PivotX, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString model.cropperModel.image.pivot.x) ] []
+        , input [ style [ ( "width", "50%" ) ], onInput PivotY, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString model.cropperModel.image.pivot.y) ] []
         ]
