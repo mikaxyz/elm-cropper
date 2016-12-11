@@ -133,7 +133,7 @@ dragDistance drag =
             Position 0 0
 
 
-getPivot : Model -> Pivot
+getPivot : Model -> Vector
 getPivot model =
     case model.drag of
         Nothing ->
@@ -163,9 +163,9 @@ getPivot model =
                     (toFloat distance.y / model.boundingClientRect.height) * rangeY
 
                 dragPivot =
-                    debugOff "dragPivot" (Pivot pivotX pivotY)
+                    debugOff "dragPivot" (Vector pivotX pivotY)
             in
-                Pivot
+                Vector
                     (Basics.clamp 0.0 1.0 (model.image.pivot.x + dragPivot.x))
                     (Basics.clamp 0.0 1.0 (model.image.pivot.y + dragPivot.y))
 

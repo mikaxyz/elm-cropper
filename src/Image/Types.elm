@@ -1,7 +1,7 @@
 module Image.Types exposing (..)
 
 
-type alias Pivot =
+type alias Vector =
     { x : Float
     , y : Float
     }
@@ -18,5 +18,5 @@ type alias Image =
     , crop : Box
     , zoom : Float
     , naturalSize : Box
-    , pivot : Pivot
+    , pivot : Vector
     }

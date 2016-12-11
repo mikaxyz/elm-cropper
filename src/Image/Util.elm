@@ -23,12 +23,6 @@ initialModel =
     }
 
 
-type alias Vector =
-    { x : Float
-    , y : Float
-    }
-
-
 imageRatio : { crop : Box, naturalSize : Box } -> Vector
 imageRatio { crop, naturalSize } =
     Vector
