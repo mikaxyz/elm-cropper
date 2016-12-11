@@ -1,28 +1,22 @@
-module Cropper.Image exposing (..)
+module Image.Cropper exposing (..)
 
-import Util.Debug exposing (..)
-import Util.Round as Round
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (on)
+import Html.Events exposing (on, onWithOptions)
 import Json.Decode exposing (Decoder)
 import Mouse exposing (Position)
+
+
+{--INTERNAL--}
+
 import Util.DOM as Dom exposing (..)
+import Util.Debug exposing (..)
+import Util.Round as Round
+import Image.Types exposing (..)
+import Image.Util exposing (..)
 
 
 -- MODEL
-
-
-type alias Pivot =
-    { x : Float
-    , y : Float
-    }
-
-
-type alias Box =
-    { width : Int
-    , height : Int
-    }
 
 
 type alias Drag =
@@ -32,11 +26,7 @@ type alias Drag =
 
 
 type alias Model =
-    { imageUrl : String
-    , crop : Box
-    , zoom : Float
-    , naturalSize : Box
-    , pivot : Pivot
+    { image : Image
     , position : Position
     , drag : Maybe Drag
     , boundingClientRect : Dom.Rectangle
@@ -45,20 +35,7 @@ type alias Model =
 
 initialModel : Model
 initialModel =
-    { imageUrl = "/assets/30192_1600x1200-4-cute-cats.jpg"
-    , crop =
-        { width = 820
-        , height = 312
-        }
-    , zoom = 0.0
-    , naturalSize =
-        { width = 1600
-        , height = 1200
-        }
-    , pivot =
-        { x = 0.5
-        , y = 0.5
-        }
+    { image = Image.Util.initialModel
     , position = Position 0 0
     , drag = Nothing
     , boundingClientRect = Dom.Rectangle 0 0 0 0
@@ -89,16 +66,38 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         SetImageUrl url ->
-            ( { model | imageUrl = url }, Cmd.none )
+            let
+                image =
+                    model.image
+            in
+                ( { model | image = { image | imageUrl = url } }, Cmd.none )
 
         SetZoom zoom ->
-            ( { model | zoom = zoom }, Cmd.none )
+            let
+                image =
+                    model.image
+            in
+                ( { model | image = { image | zoom = zoom } }, Cmd.none )
 
         SetPivotX x ->
-            ( { model | pivot = { y = model.pivot.y, x = x } }, Cmd.none )
+            let
+                image =
+                    model.image
+
+                pivot =
+                    model.image.pivot
+            in
+                ( { model | image = { image | pivot = { pivot | x = x } } }, Cmd.none )
 
         SetPivotY y ->
-            ( { model | pivot = { y = y, x = model.pivot.x } }, Cmd.none )
+            let
+                image =
+                    model.image
+
+                pivot =
+                    model.image.pivot
+            in
+                ( { model | image = { image | pivot = { pivot | y = y } } }, Cmd.none )
 
         Measure rect ->
             debugV "Measure" rect ( { model | boundingClientRect = rect }, Cmd.none )
@@ -115,10 +114,13 @@ update msg model =
 
         DragEnd _ ->
             let
+                image =
+                    model.image
+
                 pivot =
                     getPivot model
             in
-                debugOn "DragEnd" ( { model | pivot = pivot, drag = Nothing }, Cmd.none )
+                debugOn "DragEnd" ( { model | image = { image | pivot = pivot }, drag = Nothing }, Cmd.none )
 
 
 dragDistance : Maybe Drag -> Position
@@ -131,11 +133,11 @@ dragDistance drag =
             Position 0 0
 
 
-getPivot : Model -> Pivot
+getPivot : Model -> Vector
 getPivot model =
     case model.drag of
         Nothing ->
-            model.pivot
+            model.image.pivot
 
         Just { start, current } ->
             let
@@ -146,10 +148,10 @@ getPivot model =
                     imageWidth model
 
                 rangeX =
-                    debugOff "rangeX" (toFloat model.crop.width / (currentWidth - toFloat model.crop.width))
+                    debugOff "rangeX" (toFloat model.image.crop.width / (currentWidth - toFloat model.image.crop.width))
 
                 rangeY =
-                    debugOff "rangeY" (toFloat model.crop.height / (currentHeight - toFloat model.crop.height))
+                    debugOff "rangeY" (toFloat model.image.crop.height / (currentHeight - toFloat model.image.crop.height))
 
                 distance =
                     debugOff "dragDistance" (dragDistance model.drag)
@@ -161,11 +163,11 @@ getPivot model =
                     (toFloat distance.y / model.boundingClientRect.height) * rangeY
 
                 dragPivot =
-                    debugOff "dragPivot" (Pivot pivotX pivotY)
+                    debugOff "dragPivot" (Vector pivotX pivotY)
             in
-                Pivot
-                    (Basics.clamp 0.0 1.0 (model.pivot.x + dragPivot.x))
-                    (Basics.clamp 0.0 1.0 (model.pivot.y + dragPivot.y))
+                Vector
+                    (Basics.clamp 0.0 1.0 (model.image.pivot.x + dragPivot.x))
+                    (Basics.clamp 0.0 1.0 (model.image.pivot.y + dragPivot.y))
 
 
 
@@ -196,37 +198,31 @@ cropperStyle box =
 imageStyleZoomed : Model -> Attribute Msg
 imageStyleZoomed model =
     let
-        ratioH =
-            debug "ratioH" (toFloat model.naturalSize.width / toFloat model.crop.width)
+        -- RELATIVE SIZE
+        size =
+            imageSize model.image
 
-        ratioV =
-            debug "ratioV" (toFloat model.naturalSize.height / toFloat model.crop.height)
+        width =
+            debugOn "width" <| size.x / toFloat model.image.crop.width * 100
 
-        ratioMin =
-            debug "ratioMin" (Basics.min ratioH ratioV)
-
-        -- ZOOM
-        pWidth =
-            debug "pWidth" ((100.0 * ratioH / ratioMin) * (1 + model.zoom))
-
-        pHeight =
-            debug "pHeight" ((100.0 * ratioV / ratioMin) * (1 + model.zoom))
+        height =
+            debugOn "height" <| size.y / toFloat model.image.crop.height * 100
 
         -- ORIGIN
         currentPivot =
             getPivot model
 
         posX =
-            debug "posX" (-(pWidth - 100.0) * currentPivot.x)
+            debug "posX" (-(width - 100.0) * currentPivot.x)
 
         posY =
-            debug "posY" (-(pHeight - 100.0) * currentPivot.y)
+            debug "posY" (-(height - 100.0) * currentPivot.y)
     in
         style
             [ ( "position", "absolute" )
             , ( "pointer-events", "none" )
-            , ( "width", toString pWidth ++ "%" )
-            , ( "height", toString pHeight ++ "%" )
+            , ( "width", toString width ++ "%" )
+            , ( "height", toString height ++ "%" )
             , ( "left", toString posX ++ "%" )
             , ( "top", toString posY ++ "%" )
             ]
@@ -235,9 +231,9 @@ imageStyleZoomed model =
 view : Model -> Html Msg
 view model =
     div [ class "cropper" ]
-        [ div [ class "cropper__area", style [ ( "max-width", toString model.crop.width ++ "px" ) ] ]
+        [ div [ class "cropper__area", style [ ( "max-width", toString model.image.crop.width ++ "px" ) ] ]
             [ div [ class "cropper__info" ] (sourceInfoItems model)
-            , div [ on "mouseenter" measureElement, onMouseDown, cropperStyle model.crop, class "cropper__frame" ] [ img [ imageStyleZoomed model, src model.imageUrl ] [] ]
+            , div [ on "mouseenter" measureElement, onMouseDown, cropperStyle model.image.crop, class "cropper__frame" ] [ img [ imageStyleZoomed model, src model.image.imageUrl ] [] ]
             , div [ class "cropper__info" ] (cropInfoItems model)
             ]
         ]
@@ -245,9 +241,9 @@ view model =
 
 sourceInfoItems : Model -> List (Html Msg)
 sourceInfoItems model =
-    [ span [] [ "W: " ++ toString model.naturalSize.width |> text ]
-    , span [] [ "H: " ++ toString model.naturalSize.height |> text ]
-    , span [ class "fill" ] [ "SRC: " ++ model.imageUrl |> text ]
+    [ span [] [ "W: " ++ toString model.image.naturalSize.width |> text ]
+    , span [] [ "H: " ++ toString model.image.naturalSize.height |> text ]
+    , span [ class "fill" ] [ "SRC: " ++ model.image.imageUrl |> text ]
     ]
 
 
@@ -262,7 +258,11 @@ cropInfoItems model =
 
 onMouseDown : Attribute Msg
 onMouseDown =
-    on "mousedown" (Json.Decode.map DragStart Mouse.position)
+    onWithOptions "mousedown"
+        { stopPropagation = True
+        , preventDefault = True
+        }
+        (Json.Decode.map DragStart Mouse.position)
 
 
 
@@ -278,32 +278,18 @@ type alias Vector =
 imageRatio : Model -> Vector
 imageRatio model =
     Vector
-        (toFloat model.naturalSize.width / toFloat model.crop.width)
-        (toFloat model.naturalSize.height / toFloat model.crop.height)
+        (toFloat model.image.naturalSize.width / toFloat model.image.crop.width)
+        (toFloat model.image.naturalSize.height / toFloat model.image.crop.height)
 
 
 imageWidth : Model -> Float
 imageWidth model =
-    let
-        ratio =
-            imageRatio model
-
-        ratioMin =
-            Basics.min ratio.x ratio.y
-    in
-        toFloat model.crop.width * (ratio.x / ratioMin * (1 + model.zoom))
+    (imageSize model.image).x
 
 
 imageHeight : Model -> Float
 imageHeight model =
-    let
-        ratio =
-            imageRatio model
-
-        ratioMin =
-            Basics.min ratio.x ratio.y
-    in
-        toFloat model.crop.height * (ratio.y / ratioMin * (1 + model.zoom))
+    (imageSize model.image).y
 
 
 cropOrigin : Model -> Vector
