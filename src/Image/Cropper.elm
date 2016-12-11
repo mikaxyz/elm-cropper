@@ -52,7 +52,8 @@ measureElement =
 
 
 type Msg
-    = SetImageUrl String
+    = SetImage { url : String, width : Int, height : Int }
+    | CropTo Box
     | SetPivotX Float
     | SetPivotY Float
     | SetZoom Float
@@ -65,12 +66,31 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        SetImageUrl url ->
+        SetImage data ->
             let
                 image =
                     model.image
             in
-                ( { model | image = { image | imageUrl = url } }, Cmd.none )
+                ( { model
+                    | image =
+                        { image
+                            | imageUrl = data.url
+                            , zoom = 0.0
+                            , naturalSize =
+                                { width = data.width
+                                , height = data.height
+                                }
+                        }
+                  }
+                , Cmd.none
+                )
+
+        CropTo crop ->
+            let
+                image =
+                    model.image
+            in
+                ( { model | image = { image | crop = crop } }, Cmd.none )
 
         SetZoom zoom ->
             let
