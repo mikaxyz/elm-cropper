@@ -23,14 +23,14 @@ initialModel =
     }
 
 
-imageRatio : { crop : Box, naturalSize : Box } -> Vector
+imageRatio : { c | crop : Box, naturalSize : Box } -> Vector
 imageRatio { crop, naturalSize } =
     Vector
         (toFloat naturalSize.width / toFloat crop.width)
         (toFloat naturalSize.height / toFloat crop.height)
 
 
-imageSize : Image.Types.Image -> Vector
+imageSize : { c | crop : Box, naturalSize : Box, zoom : Float } -> Vector
 imageSize { crop, naturalSize, zoom } =
     let
         ratio =
