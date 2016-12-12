@@ -10,10 +10,57 @@
 <script src="/dist/js/app.js"></script>
 <script>
 	let url = new URL(window.location);
+	let params = new URLSearchParams(url.search);
 	if (url.pathname.indexOf("sandbox") > -1) {
 		Elm.Sandbox.fullscreen();
 	} else {
-		Elm.Main.fullscreen();
+		var app = Elm.Main.fullscreen();
+
+		if (params.has("s") && params.has("w") && params.has("h")) {
+			app.ports.cropperWithImage.send({
+				url: params.get("s"),
+				width: parseInt(params.get("w"), 10),
+				height: parseInt(params.get("h"), 10)
+			});
+		}
+
+		app.ports.imageCropped.subscribe(function(data) {
+			console.log('image', data);
+			var url = data.cropperModel.image.imageUrl;
+			var originX = 0;
+			var originY = 0;
+
+			var outputWidth = data.cropperModel.image.crop.width;
+			var outputHeight = data.cropperModel.image.crop.height;
+
+
+			var canvas = document.createElement('canvas');
+			canvas.width = outputWidth;
+			canvas.height = outputHeight;
+
+			var context = canvas.getContext('2d');
+			var imageObj = new Image();
+			imageObj.src = url;
+
+			context.drawImage(
+					imageObj,
+					originX,
+					originY,
+					outputWidth,
+					outputHeight,
+					0,
+					0,
+					outputWidth,
+					outputHeight
+			);
+
+
+			var dataURL = canvas.toDataURL();
+			window.open(dataURL);
+		});
+
+		window.app = app;
+
 	}
 </script>
 </body>

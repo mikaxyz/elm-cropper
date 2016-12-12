@@ -1,10 +1,26 @@
-module Main exposing (..)
+port module Main exposing (..)
 
 import Util.Debug exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick)
 import Image.Cropper as Cropper
+
+
+-- PORTS
+
+
+type alias ImageData =
+    { url : String
+    , width : Int
+    , height : Int
+    }
+
+
+port cropperWithImage : (ImageData -> msg) -> Sub msg
+
+
+port imageCropped : Model -> Cmd msg
 
 
 main : Program Never Model Msg
@@ -45,6 +61,8 @@ init =
 
 type Msg
     = Zoom String
+    | ExportImage
+    | SetImageData ImageData
     | PivotX String
     | PivotY String
     | CropperMsg Cropper.Msg
@@ -53,6 +71,16 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        ExportImage ->
+            ( model, imageCropped model )
+
+        SetImageData data ->
+            let
+                _ =
+                    Debug.log "Teeeest" data
+            in
+                update (CropperMsg <| (Cropper.SetImage data)) model
+
         Zoom zoom ->
             update (CropperMsg <| Cropper.SetZoom (Result.withDefault 0 (String.toFloat zoom))) model
 
@@ -81,6 +109,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Sub.map CropperMsg (Cropper.subscriptions model.cropperModel)
+        , cropperWithImage SetImageData
         ]
 
 
@@ -131,6 +160,7 @@ zoomWidget model =
         , a [ class "button", onClick <| CropperMsg <| Cropper.CropTo cropSmall ] [ text "S" ]
         , a [ class "button", onClick <| CropperMsg <| Cropper.CropTo cropMedium ] [ text "M" ]
         , a [ class "button", onClick <| CropperMsg <| Cropper.CropTo cropFacebook ] [ text "FB" ]
+        , a [ class "button", onClick <| ExportImage ] [ text "!" ]
         , input [ style [ ( "width", "50%" ) ], onInput Zoom, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString model.cropperModel.image.zoom) ] []
         , input [ style [ ( "width", "50%" ) ], onInput PivotX, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString model.cropperModel.image.pivot.x) ] []
         , input [ style [ ( "width", "50%" ) ], onInput PivotY, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString model.cropperModel.image.pivot.y) ] []
