@@ -8,25 +8,31 @@ import Image.Types
 import Image.Util exposing (..)
 
 
-model : Image.Types.Image
-model =
-    { initialModel
-        | zoom = 1.0
-        , crop =
-            { width = 800
-            , height = 300
-            }
-        , naturalSize =
-            { width = 1600
-            , height = 1200
-            }
-    }
-
-
 all : Test
 all =
     describe "ImageCropper module"
-        [ describe "Image.Util.imageSize"
+        [ Test.concat [ imageSize ]
+        ]
+
+
+imageSize : Test
+imageSize =
+    let
+        model : Image.Types.Image
+        model =
+            { initialModel
+                | zoom = 1.0
+                , crop =
+                    { width = 800
+                    , height = 300
+                    }
+                , naturalSize =
+                    { width = 1600
+                    , height = 1200
+                    }
+            }
+    in
+        describe "imageSize"
             [ test "landscape image size at min zoom" <|
                 \() ->
                     Expect.equal
@@ -133,4 +139,3 @@ all =
                         )
                         { x = 1600, y = 1200 }
             ]
-        ]
