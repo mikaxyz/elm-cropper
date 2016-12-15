@@ -11,8 +11,151 @@ import Image.Util exposing (..)
 all : Test
 all =
     describe "ImageCropper module"
-        [ Test.concat [ imageSize ]
+        [ Test.concat
+            [ imageSize
+            , cropOrigin
+            ]
         ]
+
+
+cropOrigin : Test
+cropOrigin =
+    let
+        model : Image.Types.Image
+        model =
+            { initialModel
+                | crop =
+                    { width = 100
+                    , height = 100
+                    }
+                , naturalSize =
+                    { width = 200
+                    , height = 200
+                    }
+            }
+    in
+        describe "cropOrigin"
+            -- TOP LEFT
+            [ test "top left pivot at min zoom" <|
+                \() ->
+                    Expect.equal
+                        (Image.Util.cropOrigin
+                            { model
+                                | zoom = 0.0
+                                , pivot =
+                                    { x = 0.0
+                                    , y = 0.0
+                                    }
+                            }
+                        )
+                        { x = 0, y = 0 }
+            , test "top left pivot at mid zoom" <|
+                \() ->
+                    Expect.equal
+                        (Image.Util.cropOrigin
+                            { model
+                                | zoom = 0.5
+                                , pivot =
+                                    { x = 0.0
+                                    , y = 0.0
+                                    }
+                            }
+                        )
+                        { x = 0, y = 0 }
+            , test "top left pivot at max zoom" <|
+                \() ->
+                    Expect.equal
+                        (Image.Util.cropOrigin
+                            { model
+                                | zoom = 1.0
+                                , pivot =
+                                    { x = 0.0
+                                    , y = 0.0
+                                    }
+                            }
+                        )
+                        { x = 0, y = 0 }
+              -- CENTER
+            , test "center pivot at min zoom" <|
+                \() ->
+                    Expect.equal
+                        (Image.Util.cropOrigin
+                            { model
+                                | zoom = 0.0
+                                , pivot =
+                                    { x = 0.5
+                                    , y = 0.5
+                                    }
+                            }
+                        )
+                        { x = 0, y = 0 }
+            , test "center pivot at mid zoom" <|
+                \() ->
+                    Expect.equal
+                        (Image.Util.cropOrigin
+                            { model
+                                | zoom = 0.5
+                                , pivot =
+                                    { x = 0.5
+                                    , y = 0.5
+                                    }
+                            }
+                        )
+                        { x = 25, y = 25 }
+            , test "center pivot at max zoom" <|
+                \() ->
+                    Expect.equal
+                        (Image.Util.cropOrigin
+                            { model
+                                | zoom = 1.0
+                                , pivot =
+                                    { x = 0.5
+                                    , y = 0.5
+                                    }
+                            }
+                        )
+                        { x = 50, y = 50 }
+              -- BOTTOM RIGHT
+            , test "bottom right pivot at min zoom" <|
+                \() ->
+                    Expect.equal
+                        (Image.Util.cropOrigin
+                            { model
+                                | zoom = 0.0
+                                , pivot =
+                                    { x = 1.0
+                                    , y = 1.0
+                                    }
+                            }
+                        )
+                        { x = 0, y = 0 }
+            , test "bottom right pivot at mid zoom" <|
+                \() ->
+                    Expect.equal
+                        (Image.Util.cropOrigin
+                            { model
+                                | zoom = 0.5
+                                , pivot =
+                                    { x = 1.0
+                                    , y = 1.0
+                                    }
+                            }
+                        )
+                        { x = 50, y = 50 }
+            , test "bottom right pivot at max zoom" <|
+                \() ->
+                    Expect.equal
+                        (Image.Util.cropOrigin
+                            { model
+                                | zoom = 1.0
+                                , pivot =
+                                    { x = 1.0
+                                    , y = 1.0
+                                    }
+                            }
+                        )
+                        { x = 100, y = 100 }
+            ]
 
 
 imageSize : Test
