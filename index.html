@@ -9,18 +9,24 @@
 <body>
 <script src="/dist/js/app.js"></script>
 <script>
-	let url = new URL(window.location);
-	let params = new URLSearchParams(url.search);
-	if (url.pathname.indexOf("sandbox") > -1) {
+	if (window.location.pathname.indexOf("sandbox") > -1) {
 		Elm.Sandbox.fullscreen();
 	} else {
 		var app = Elm.Main.fullscreen();
 
-		if (params.has("s") && params.has("w") && params.has("h")) {
+		var params = window.location.search.substring(1)
+						.split("&")
+						.reduce(function(a, v) {
+							var s = v.split("=");
+							a[s[0]] = s[1];
+							return a;
+						}, {}) || {};
+
+		if (params.s && params.w && params.h) {
 			app.ports.cropperWithImage.send({
-				url: params.get("s"),
-				width: parseInt(params.get("w"), 10),
-				height: parseInt(params.get("h"), 10)
+				url: params.s,
+				width: parseInt(params.w, 10),
+				height: parseInt(params.h, 10)
 			});
 		}
 
