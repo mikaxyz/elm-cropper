@@ -20,7 +20,61 @@ type alias ImageData =
 port cropperWithImage : (ImageData -> msg) -> Sub msg
 
 
-port imageCropped : Model -> Cmd msg
+type alias CropData =
+    { url : String
+    , size :
+        { width : Int
+        , height : Int
+        }
+    , crop :
+        { width : Int
+        , height : Int
+        }
+    , resized :
+        { width : Int
+        , height : Int
+        }
+    , origin :
+        { x : Int
+        , y : Int
+        }
+    }
+
+
+createCropData : Model -> CropData
+createCropData model =
+    let
+        size =
+            Cropper.imageSize model.cropperModel.image
+
+        origin =
+            Cropper.cropOrigin model.cropperModel.image
+    in
+        { url = model.cropperModel.image.imageUrl
+        , size =
+            { width = model.cropperModel.image.naturalSize.width
+            , height = model.cropperModel.image.naturalSize.height
+            }
+        , crop =
+            { width = model.cropperModel.image.crop.width
+            , height = model.cropperModel.image.crop.height
+            }
+        , resized =
+            { width = round size.x
+            , height = round size.y
+            }
+        , origin =
+            { x = round origin.x
+            , y = round origin.y
+            }
+        }
+
+
+port imageCropped : CropData -> Cmd msg
+
+
+
+--port imageCropped : Model -> Cmd msg
 
 
 main : Program Never Model Msg
@@ -72,8 +126,9 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ExportImage ->
-            ( model, imageCropped model )
+            ( model, imageCropped (createCropData model) )
 
+        --            ( model, imageCropped model )
         SetImageData data ->
             let
                 _ =

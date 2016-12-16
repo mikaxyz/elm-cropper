@@ -31,42 +31,36 @@
 		}
 
 		app.ports.imageCropped.subscribe(function(data) {
-			console.log('image', data);
-			var url = data.cropperModel.image.imageUrl;
-			var originX = 0;
-			var originY = 0;
-
-			var outputWidth = data.cropperModel.image.crop.width;
-			var outputHeight = data.cropperModel.image.crop.height;
-
+			var url = data.url;
+			var size = data.size;
+			var resized = data.resized;
+			var origin = data.origin;
+			var crop = data.crop;
 
 			var canvas = document.createElement('canvas');
-			canvas.width = outputWidth;
-			canvas.height = outputHeight;
-
+			canvas.width = crop.width;
+			canvas.height = crop.height;
 			var context = canvas.getContext('2d');
+
 			var imageObj = new Image();
 			imageObj.src = url;
+			imageObj.onload = function() {
+				context.drawImage(
+						imageObj,
+						0,
+						0,
+						size.width,
+						size.height,
+						-origin.x,
+						-origin.y,
+						resized.width,
+						resized.height
+				);
 
-			context.drawImage(
-					imageObj,
-					originX,
-					originY,
-					outputWidth,
-					outputHeight,
-					0,
-					0,
-					outputWidth,
-					outputHeight
-			);
-
-
-			var dataURL = canvas.toDataURL();
-			window.open(dataURL);
+				var dataURL = canvas.toDataURL("image/jpeg", 1.0);
+				window.open(dataURL);
+			};
 		});
-
-		window.app = app;
-
 	}
 </script>
 </body>

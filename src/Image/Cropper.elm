@@ -33,6 +33,16 @@ type alias Model =
     }
 
 
+imageSize : Image -> Vector
+imageSize model =
+    Image.Util.imageSize model
+
+
+cropOrigin : Image -> Vector
+cropOrigin model =
+    Image.Util.cropOrigin model
+
+
 initialModel : Model
 initialModel =
     { image = Image.Util.initialModel
