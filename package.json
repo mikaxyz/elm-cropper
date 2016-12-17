@@ -1,12 +1,12 @@
 {
-  "name": "testing-elm-versions",
+  "name": "elm-image-crop",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "index.html",
   "scripts": {
     "test": "elm-test"
   },
-  "author": "",
+  "author": "me@mika.xyz",
   "license": "ISC",
   "devDependencies": {
     "elm": "^0.18.0",
