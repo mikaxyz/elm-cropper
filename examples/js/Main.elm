@@ -1,6 +1,7 @@
 port module Main exposing (..)
 
 import Util.Debug exposing (..)
+import Util.Round as Round
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick)
@@ -202,9 +203,28 @@ view : Model -> Html Msg
 view model =
     div []
         [ h4 [] [ text model.name ]
+        , div [ class "cropper__info" ] (sourceInfoItems model.cropperModel)
         , div [ class "section" ] [ Html.map CropperMsg <| Cropper.view model.cropperModel ]
+        , div [ class "cropper__info" ] (cropInfoItems model.cropperModel)
         , zoomWidget model
         ]
+
+
+sourceInfoItems : Cropper.Model -> List (Html Msg)
+sourceInfoItems model =
+    [ span [] [ "W: " ++ toString model.image.naturalSize.width |> text ]
+    , span [] [ "H: " ++ toString model.image.naturalSize.height |> text ]
+    , span [ class "fill" ] [ "SRC: " ++ model.image.imageUrl |> text ]
+    ]
+
+
+cropInfoItems : Cropper.Model -> List (Html Msg)
+cropInfoItems model =
+    [ span [] [ "W: " ++ Round.round 2 (Cropper.imageSize model.image).x |> text ]
+    , span [] [ "H: " ++ Round.round 2 (Cropper.imageSize model.image).y |> text ]
+    , span [] [ "X: " ++ toString (floor (Cropper.cropOrigin model.image).x) |> text ]
+    , span [] [ "Y: " ++ toString (floor (Cropper.cropOrigin model.image).y) |> text ]
+    ]
 
 
 zoomWidget : Model -> Html Msg

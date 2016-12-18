@@ -11,7 +11,6 @@ import DOM
 {--INTERNAL--}
 
 import Util.Debug exposing (..)
-import Util.Round as Round
 import Image.Types exposing (..)
 import Image.Util exposing (..)
 
@@ -262,28 +261,9 @@ view : Model -> Html Msg
 view model =
     div [ class "cropper" ]
         [ div [ class "cropper__area", style [ ( "max-width", toString model.image.crop.width ++ "px" ) ] ]
-            [ div [ class "cropper__info" ] (sourceInfoItems model)
-            , div [ on "mouseenter" measureElement, onMouseDown, cropperStyle model.image.crop, class "cropper__frame" ] [ img [ imageStyleZoomed model, src model.image.imageUrl ] [] ]
-            , div [ class "cropper__info" ] (cropInfoItems model)
+            [ div [ on "mouseenter" measureElement, onMouseDown, cropperStyle model.image.crop, class "cropper__frame" ] [ img [ imageStyleZoomed model, src model.image.imageUrl ] [] ]
             ]
         ]
-
-
-sourceInfoItems : Model -> List (Html Msg)
-sourceInfoItems model =
-    [ span [] [ "W: " ++ toString model.image.naturalSize.width |> text ]
-    , span [] [ "H: " ++ toString model.image.naturalSize.height |> text ]
-    , span [ class "fill" ] [ "SRC: " ++ model.image.imageUrl |> text ]
-    ]
-
-
-cropInfoItems : Model -> List (Html Msg)
-cropInfoItems model =
-    [ span [] [ "W: " ++ Round.round 2 (imageSize model.image).x |> text ]
-    , span [] [ "H: " ++ Round.round 2 (imageSize model.image).y |> text ]
-    , span [] [ "X: " ++ toString (floor (cropOrigin model.image).x) |> text ]
-    , span [] [ "Y: " ++ toString (floor (cropOrigin model.image).y) |> text ]
-    ]
 
 
 onMouseDown : Attribute Msg
