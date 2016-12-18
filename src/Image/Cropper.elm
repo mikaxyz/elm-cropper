@@ -5,11 +5,11 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (on, onWithOptions)
 import Json.Decode exposing (Decoder)
 import Mouse exposing (Position)
+import DOM
 
 
 {--INTERNAL--}
 
-import Util.DOM as Dom exposing (..)
 import Util.Debug exposing (..)
 import Util.Round as Round
 import Image.Types exposing (..)
@@ -29,7 +29,7 @@ type alias Model =
     { image : Image
     , position : Position
     , drag : Maybe Drag
-    , boundingClientRect : Dom.Rectangle
+    , boundingClientRect : DOM.Rectangle
     }
 
 
@@ -48,13 +48,13 @@ initialModel =
     { image = Image.Util.initialModel
     , position = Position 0 0
     , drag = Nothing
-    , boundingClientRect = Dom.Rectangle 0 0 0 0
+    , boundingClientRect = DOM.Rectangle 0 0 0 0
     }
 
 
 measureElement : Decoder Msg
 measureElement =
-    Json.Decode.map Measure (Dom.target <| Dom.boundingClientRect)
+    Json.Decode.map Measure (DOM.target <| DOM.boundingClientRect)
 
 
 
@@ -70,7 +70,7 @@ type Msg
     | DragStart Position
     | DragAt Position
     | DragEnd Position
-    | Measure Dom.Rectangle
+    | Measure DOM.Rectangle
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
