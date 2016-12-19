@@ -1,7 +1,6 @@
 port module Main exposing (..)
 
 import Util.Debug exposing (..)
-import Util.Round as Round
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick)
@@ -218,10 +217,19 @@ sourceInfoItems model =
     ]
 
 
+showRound : Int -> Float -> String
+showRound d value =
+    let
+        f =
+            (round (value * toFloat (10 ^ d))) % (10 ^ d)
+    in
+        toString (floor value) ++ "." ++ (String.padLeft d '0' <| toString f)
+
+
 cropInfoItems : Cropper.Model -> List (Html Msg)
 cropInfoItems model =
-    [ span [] [ "W: " ++ Round.round 2 (Cropper.imageSize model.image).x |> text ]
-    , span [] [ "H: " ++ Round.round 2 (Cropper.imageSize model.image).y |> text ]
+    [ span [] [ "W: " ++ showRound 2 (Cropper.imageSize model.image).x |> text ]
+    , span [] [ "H: " ++ showRound 2 (Cropper.imageSize model.image).y |> text ]
     , span [] [ "X: " ++ toString (floor (Cropper.cropOrigin model.image).x) |> text ]
     , span [] [ "Y: " ++ toString (floor (Cropper.cropOrigin model.image).y) |> text ]
     ]
