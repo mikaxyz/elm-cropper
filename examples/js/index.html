@@ -39,6 +39,8 @@
 		canvas.height = crop.height;
 		var context = canvas.getContext('2d');
 
+		var previewWindow = window.open();
+
 		var imageObj = new Image();
 		imageObj.src = url;
 		imageObj.onload = function() {
@@ -55,7 +57,7 @@
 			);
 
 			var dataURL = canvas.toDataURL("image/jpeg", 1.0);
-			window.open(dataURL);
+			previewWindow.location = dataURL;
 		};
 	});
 </script>
