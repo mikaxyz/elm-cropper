@@ -92,15 +92,13 @@ main =
 
 
 type alias Model =
-    { name : String
-    , cropperModel : Cropper.Model
+    { cropperModel : Cropper.Model
     }
 
 
 initialModel : Model
 initialModel =
-    { name = "I am sand. Sand box."
-    , cropperModel = Cropper.initialModel
+    { cropperModel = Cropper.initialModel
     }
 
 
@@ -201,7 +199,7 @@ cropFacebook =
 view : Model -> Html Msg
 view model =
     div []
-        [ h4 [] [ text model.name ]
+        [ h2 [] [ text "Elm Image Crop Example" ]
         , div [ class "cropper__info" ] (sourceInfoItems model.cropperModel)
         , div [ class "section" ] [ Html.map CropperMsg <| Cropper.view model.cropperModel ]
         , div [ class "cropper__info" ] (cropInfoItems model.cropperModel)
