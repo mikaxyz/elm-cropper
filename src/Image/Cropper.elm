@@ -217,10 +217,25 @@ subscriptions model =
 -- VIEW
 
 
+wrapperStyle : Box -> Attribute Msg
+wrapperStyle box =
+    style
+        [ ( "-webkit-user-select", "none" )
+        , ( "-moz-user-select", "none" )
+        , ( "-ms-user-select", "none" )
+        , ( "user-select", "none" )
+        , ( "max-width", toString box.width ++ "px" )
+        ]
+
+
 cropperStyle : Box -> Attribute Msg
 cropperStyle box =
     style
         [ ( "padding-bottom", toString (100.0 * toFloat box.height / toFloat box.width) ++ "%" )
+        , ( "position", "relative" )
+        , ( "height", "0" )
+        , ( "overflow", "hidden" )
+        , ( "max-width", "100%" )
         ]
 
 
@@ -249,6 +264,9 @@ imageStyleZoomed model =
     in
         style
             [ ( "position", "absolute" )
+            , ( "min-width", "0" )
+            , ( "max-width", "none" )
+            , ( "display", "block" )
             , ( "pointer-events", "none" )
             , ( "width", toString width ++ "%" )
             , ( "height", toString height ++ "%" )
@@ -259,9 +277,9 @@ imageStyleZoomed model =
 
 view : Model -> Html Msg
 view model =
-    div [ class "cropper" ]
-        [ div [ class "cropper__area", style [ ( "max-width", toString model.image.crop.width ++ "px" ) ] ]
-            [ div [ on "mouseenter" measureElement, onMouseDown, cropperStyle model.image.crop, class "cropper__frame" ] [ img [ imageStyleZoomed model, src model.image.imageUrl ] [] ]
+    div [ class "elm-image-cropper", wrapperStyle model.image.crop ]
+        [ div [ class "elm-image-cropper__frame", cropperStyle model.image.crop, on "mouseenter" measureElement, onMouseDown ]
+            [ img [ class "elm-image-cropper__image", imageStyleZoomed model, src model.image.imageUrl ] []
             ]
         ]
 

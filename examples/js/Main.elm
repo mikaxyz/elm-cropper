@@ -175,34 +175,25 @@ newImg =
     { url = "/assets/tv-digital-art-test-pattern-1920x1080-68386.jpg", width = 1920, height = 1080 }
 
 
-cropSmall : { height : Int, width : Int }
-cropSmall =
-    { width = 240
-    , height = 160
-    }
-
-
-cropMedium : { height : Int, width : Int }
-cropMedium =
-    { width = 640
-    , height = 480
-    }
-
-
-cropFacebook : { height : Int, width : Int }
-cropFacebook =
-    { width = 820
-    , height = 312
-    }
-
-
 view : Model -> Html Msg
 view model =
     div []
-        [ h2 [] [ text "Elm Image Crop Example" ]
-        , div [ class "cropper__info" ] (sourceInfoItems model.cropperModel)
-        , div [ class "section" ] [ Html.map CropperMsg <| Cropper.view model.cropperModel ]
-        , div [ class "cropper__info" ] (cropInfoItems model.cropperModel)
+        [ header []
+            [ h2 [] [ text "Elm Image Crop Example" ]
+            , p []
+                [ text "Here is an image of some cats. You can use the sliders below to zoom or position it. Try dragging the image. If cats are not your thing: "
+                , button [ onClick <| CropperMsg <| Cropper.SetImage newImg ] [ text "Try another image" ]
+                ]
+            , p []
+                [ text "Crop to size:"
+                , button [ onClick <| CropperMsg <| Cropper.CropTo { width = 240, height = 160 } ] [ text "240×160" ]
+                , button [ onClick <| CropperMsg <| Cropper.CropTo { width = 640, height = 480 } ] [ text "640×480" ]
+                , button [ onClick <| CropperMsg <| Cropper.CropTo { width = 820, height = 312 } ] [ text "820×312" ]
+                ]
+            ]
+        , div [ class "info-bar", style [ ( "max-width", toString model.cropperModel.image.crop.width ++ "px" ) ] ] (sourceInfoItems model.cropperModel)
+        , div [] [ Html.map CropperMsg <| Cropper.view model.cropperModel ]
+        , div [ class "info-bar", style [ ( "max-width", toString model.cropperModel.image.crop.width ++ "px" ) ] ] (cropInfoItems model.cropperModel)
         , zoomWidget model
         ]
 
@@ -235,14 +226,17 @@ cropInfoItems model =
 
 zoomWidget : Model -> Html Msg
 zoomWidget model =
-    div [ class "cropper__controls" ]
-        [ h4 [] [ text <| "ZOOM: " ++ (toString model.cropperModel.image.zoom) ]
-        , a [ class "button", onClick <| CropperMsg <| Cropper.SetImage newImg ] [ text "*" ]
-        , a [ class "button", onClick <| CropperMsg <| Cropper.CropTo cropSmall ] [ text "S" ]
-        , a [ class "button", onClick <| CropperMsg <| Cropper.CropTo cropMedium ] [ text "M" ]
-        , a [ class "button", onClick <| CropperMsg <| Cropper.CropTo cropFacebook ] [ text "FB" ]
-        , a [ class "button", onClick <| ExportImage ] [ text "!" ]
-        , input [ style [ ( "width", "50%" ) ], onInput Zoom, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString model.cropperModel.image.zoom) ] []
-        , input [ style [ ( "width", "50%" ) ], onInput PivotX, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString model.cropperModel.image.pivot.x) ] []
-        , input [ style [ ( "width", "50%" ) ], onInput PivotY, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString model.cropperModel.image.pivot.y) ] []
+    div [ class "controls" ]
+        [ p [ class "controls__row" ]
+            [ label [] [ text "Z" ]
+            , input [ onInput Zoom, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString model.cropperModel.image.zoom) ] []
+            , span [] [ text <| showRound 4 model.cropperModel.image.zoom ]
+            ]
+        , p [ class "controls__row" ]
+            [ label [] [ text "X" ]
+            , input [ onInput PivotX, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString model.cropperModel.image.pivot.x) ] []
+            , label [] [ text "Y" ]
+            , input [ onInput PivotY, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString model.cropperModel.image.pivot.y) ] []
+            ]
+        , button [ class "controls__button", onClick <| ExportImage ] [ text "Crop" ]
         ]
