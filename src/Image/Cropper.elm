@@ -239,8 +239,8 @@ cropperStyle box =
         ]
 
 
-imageStyleZoomed : Model -> Attribute Msg
-imageStyleZoomed model =
+imageStyle : Model -> Attribute Msg
+imageStyle model =
     let
         -- RELATIVE SIZE
         size =
@@ -279,7 +279,7 @@ view : Model -> Html Msg
 view model =
     div [ class "elm-image-cropper", wrapperStyle model.image.crop ]
         [ div [ class "elm-image-cropper__frame", cropperStyle model.image.crop, on "mouseenter" measureElement, onMouseDown ]
-            [ img [ class "elm-image-cropper__image", imageStyleZoomed model, src model.image.imageUrl ] []
+            [ img [ class "elm-image-cropper__image", imageStyle model, src model.image.imageUrl ] []
             ]
         ]
 
