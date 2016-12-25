@@ -26,6 +26,7 @@ type alias Drag =
 
 type alias Model =
     { image : Image
+    , isLoading : Bool
     , position : Position
     , drag : Maybe Drag
     , boundingClientRect : DOM.Rectangle
@@ -45,6 +46,7 @@ cropOrigin model =
 initialModel : Model
 initialModel =
     { image = Image.Util.initialModel
+    , isLoading = True
     , position = Position 0 0
     , drag = Nothing
     , boundingClientRect = DOM.Rectangle 0 0 0 0
@@ -70,18 +72,27 @@ type Msg
     | DragAt Position
     | DragEnd Position
     | Measure DOM.Rectangle
+    | ImageLoaded String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        ImageLoaded src ->
+            let
+                wasLoaded =
+                    debugOn "wasLoaded" (model.image.imageUrl == src)
+            in
+                debugV "ImageLoaded" src ( { model | isLoading = not wasLoaded }, Cmd.none )
+
         SetImage data ->
             let
                 image =
                     model.image
             in
                 ( { model
-                    | image =
+                    | isLoading = True
+                    , image =
                         { image
                             | imageUrl = data.url
                             , zoom = 0.0
@@ -275,13 +286,26 @@ imageStyle model =
             ]
 
 
+targetSrc : String -> Decoder Msg
+targetSrc src =
+    Json.Decode.succeed (ImageLoaded src)
+
+
 view : Model -> Html Msg
 view model =
-    div [ class "elm-image-cropper", wrapperStyle model.image.crop ]
-        [ div [ class "elm-image-cropper__frame", cropperStyle model.image.crop, on "mouseenter" measureElement, onMouseDown ]
-            [ img [ class "elm-image-cropper__image", imageStyle model, src model.image.imageUrl ] []
+    let
+        content =
+            if model.isLoading then
+                [ h4 [ class "elm-image-cropper__loading" ] [ text "Loading..." ]
+                , img [ style [ ( "display", "none" ) ], on "load" <| targetSrc model.image.imageUrl, src model.image.imageUrl ] []
+                ]
+            else
+                [ img [ class "elm-image-cropper__image", imageStyle model, src model.image.imageUrl ] [] ]
+    in
+        div [ class "elm-image-cropper", wrapperStyle model.image.crop ]
+            [ div [ class "elm-image-cropper__frame", cropperStyle model.image.crop, on "mouseenter" measureElement, onMouseDown ]
+                content
             ]
-        ]
 
 
 onMouseDown : Attribute Msg
