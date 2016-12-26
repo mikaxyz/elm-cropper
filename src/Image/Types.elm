@@ -23,6 +23,6 @@ type alias Image =
 
 
 type CropperImage
-    = Unset Image
+    = Unset
     | Loading Image
     | Loaded Image

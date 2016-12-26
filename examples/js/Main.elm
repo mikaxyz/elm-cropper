@@ -43,34 +43,36 @@ type alias CropData =
 
 createCropData : Model -> CropData
 createCropData model =
-    let
-        image =
-            Cropper.getImageData model.cropperModel
+    case (Cropper.getImageData model.cropperModel) of
+        Nothing ->
+            CropData "" { width = 0, height = 0 } { width = 0, height = 0 } { width = 0, height = 0 } { x = 0, y = 0 }
 
-        size =
-            Cropper.imageSize model.cropperModel
+        Just image ->
+            let
+                size =
+                    Cropper.imageSize model.cropperModel
 
-        origin =
-            Cropper.cropOrigin model.cropperModel
-    in
-        { url = image.imageUrl
-        , size =
-            { width = image.naturalSize.width
-            , height = image.naturalSize.height
-            }
-        , crop =
-            { width = image.crop.width
-            , height = image.crop.height
-            }
-        , resized =
-            { width = round size.x
-            , height = round size.y
-            }
-        , origin =
-            { x = round origin.x
-            , y = round origin.y
-            }
-        }
+                origin =
+                    Cropper.cropOrigin model.cropperModel
+            in
+                { url = image.imageUrl
+                , size =
+                    { width = image.naturalSize.width
+                    , height = image.naturalSize.height
+                    }
+                , crop =
+                    { width = image.crop.width
+                    , height = image.crop.height
+                    }
+                , resized =
+                    { width = round size.x
+                    , height = round size.y
+                    }
+                , origin =
+                    { x = round origin.x
+                    , y = round origin.y
+                    }
+                }
 
 
 port imageCropped : CropData -> Cmd msg
@@ -198,23 +200,25 @@ view model =
                     , button [ onClick <| CropperMsg <| Cropper.CropTo { width = 820, height = 312 } ] [ text "820×312" ]
                     ]
                 ]
-            , div [ class "info-bar", style [ ( "max-width", toString image.crop.width ++ "px" ) ] ] (sourceInfoItems model.cropperModel)
+            , sourceInfoItems model.cropperModel
             , div [] [ Html.map CropperMsg <| Cropper.view model.cropperModel ]
-            , div [ class "info-bar", style [ ( "max-width", toString image.crop.width ++ "px" ) ] ] (cropInfoItems model.cropperModel)
+            , cropInfoItems model.cropperModel
             , zoomWidget model
             ]
 
 
-sourceInfoItems : Cropper.Model -> List (Html Msg)
+sourceInfoItems : Cropper.Model -> Html Msg
 sourceInfoItems model =
-    let
-        image =
-            Cropper.getImageData model
-    in
-        [ span [] [ "W: " ++ toString image.naturalSize.width |> text ]
-        , span [] [ "H: " ++ toString image.naturalSize.height |> text ]
-        , span [ class "fill" ] [ "SRC: " ++ image.imageUrl |> text ]
-        ]
+    case (Cropper.getImageData model) of
+        Nothing ->
+            div [ class "info-bar" ] [ span [] [ text "No image..." ] ]
+
+        Just image ->
+            div [ class "info-bar", style [ ( "max-width", toString image.crop.width ++ "px" ) ] ]
+                [ span [] [ "W: " ++ toString image.naturalSize.width |> text ]
+                , span [] [ "H: " ++ toString image.naturalSize.height |> text ]
+                , span [ class "fill" ] [ "SRC: " ++ image.imageUrl |> text ]
+                ]
 
 
 showRound : Int -> Float -> String
@@ -226,32 +230,40 @@ showRound d value =
         toString (floor value) ++ "." ++ (String.padLeft d '0' <| toString f)
 
 
-cropInfoItems : Cropper.Model -> List (Html Msg)
+cropInfoItems : Cropper.Model -> Html Msg
 cropInfoItems model =
-    [ span [] [ "W: " ++ showRound 2 (Cropper.imageSize model).x |> text ]
-    , span [] [ "H: " ++ showRound 2 (Cropper.imageSize model).y |> text ]
-    , span [] [ "X: " ++ toString (floor (Cropper.cropOrigin model).x) |> text ]
-    , span [] [ "Y: " ++ toString (floor (Cropper.cropOrigin model).y) |> text ]
-    ]
+    case (Cropper.getImageData model) of
+        Nothing ->
+            div [ class "info-bar" ] [ span [] [ text "No image..." ] ]
+
+        Just image ->
+            div [ class "info-bar", style [ ( "max-width", toString image.crop.width ++ "px" ) ] ]
+                [ span [] [ "W: " ++ showRound 2 (Cropper.imageSize model).x |> text ]
+                , span [] [ "H: " ++ showRound 2 (Cropper.imageSize model).y |> text ]
+                , span [] [ "X: " ++ toString (floor (Cropper.cropOrigin model).x) |> text ]
+                , span [] [ "Y: " ++ toString (floor (Cropper.cropOrigin model).y) |> text ]
+                ]
 
 
 zoomWidget : Model -> Html Msg
 zoomWidget model =
-    let
-        image =
-            Cropper.getImageData model.cropperModel
-    in
-        div [ class "controls" ]
-            [ p [ class "controls__row" ]
-                [ label [] [ text "Z" ]
-                , input [ onInput Zoom, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString image.zoom) ] []
-                , span [] [ text <| showRound 4 image.zoom ]
+    case (Cropper.getImageData model.cropperModel) of
+        Nothing ->
+            div [ class "controls" ]
+                [ span [] [ text "No image..." ] ]
+
+        Just image ->
+            div [ class "controls" ]
+                [ p [ class "controls__row" ]
+                    [ label [] [ text "Z" ]
+                    , input [ onInput Zoom, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString image.zoom) ] []
+                    , span [] [ text <| showRound 4 image.zoom ]
+                    ]
+                , p [ class "controls__row" ]
+                    [ label [] [ text "X" ]
+                    , input [ onInput PivotX, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString image.pivot.x) ] []
+                    , label [] [ text "Y" ]
+                    , input [ onInput PivotY, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString image.pivot.y) ] []
+                    ]
+                , button [ class "controls__button", onClick <| ExportImage ] [ text "Crop" ]
                 ]
-            , p [ class "controls__row" ]
-                [ label [] [ text "X" ]
-                , input [ onInput PivotX, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString image.pivot.x) ] []
-                , label [] [ text "Y" ]
-                , input [ onInput PivotY, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString image.pivot.y) ] []
-                ]
-            , button [ class "controls__button", onClick <| ExportImage ] [ text "Crop" ]
-            ]
