@@ -20,3 +20,9 @@ type alias Image =
     , naturalSize : Box
     , pivot : Vector
     }
+
+
+type CropperImage
+    = Unset Image
+    | Loading Image
+    | Loaded Image
