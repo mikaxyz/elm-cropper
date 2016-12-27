@@ -12,8 +12,14 @@ import Image.Cropper as Cropper
 
 type alias ImageData =
     { url : String
-    , width : Int
-    , height : Int
+    , size :
+        { width : Int
+        , height : Int
+        }
+    , crop :
+        { width : Int
+        , height : Int
+        }
     }
 
 
@@ -175,9 +181,12 @@ subscriptions model =
 -- VIEW
 
 
-newImg : { height : Int, url : String, width : Int }
+newImg : ImageData
 newImg =
-    { url = "/assets/tv-digital-art-test-pattern-1920x1080-68386.jpg", width = 1920, height = 1080 }
+    { url = "/assets/tv-digital-art-test-pattern-1920x1080-68386.jpg"
+    , size = { width = 1920, height = 1080 }
+    , crop = { width = 360, height = 480 }
+    }
 
 
 view : Model -> Html Msg

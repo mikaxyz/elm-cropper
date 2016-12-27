@@ -67,7 +67,7 @@ measureElement =
 
 
 type Msg
-    = SetImage { url : String, width : Int, height : Int }
+    = SetImage { url : String, size : Box, crop : Box }
     | CropTo Box
     | SetPivotX Float
     | SetPivotY Float
@@ -122,13 +122,13 @@ update msg model =
                     Loading
                         { imageUrl = data.url
                         , crop =
-                            { width = 820
-                            , height = 312
+                            { width = data.crop.width
+                            , height = data.crop.height
                             }
                         , zoom = 0.0
                         , naturalSize =
-                            { width = data.width
-                            , height = data.height
+                            { width = data.size.width
+                            , height = data.size.height
                             }
                         , pivot =
                             { x = 0.5
