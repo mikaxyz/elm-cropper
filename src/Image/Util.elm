@@ -13,8 +13,8 @@ initialModel =
         }
     , zoom = 0.0
     , naturalSize =
-        { width = 1600
-        , height = 1200
+        { width = 0
+        , height = 0
         }
     , pivot =
         { x = 0.5

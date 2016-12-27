@@ -20,6 +20,13 @@ type alias Drag =
     }
 
 
+type alias ImageData =
+    { src : String
+    , width : Int
+    , height : Int
+    }
+
+
 type alias Model =
     { image : CropperImage
     , position : Position
@@ -67,7 +74,7 @@ measureElement =
 
 
 type Msg
-    = SetImage { url : String, size : Box, crop : Box }
+    = SetImage { url : String, crop : Box }
     | CropTo Box
     | SetPivotX Float
     | SetPivotY Float
@@ -76,7 +83,7 @@ type Msg
     | DragAt Position
     | DragEnd Position
     | Measure DOM.Rectangle
-    | ImageLoaded String
+    | ImageLoaded ImageData
 
 
 getImageData : Model -> Maybe Image
@@ -108,13 +115,22 @@ setImageData image data =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ImageLoaded src ->
-            case (getImageData model) of
-                Nothing ->
-                    ( model, Cmd.none )
+        ImageLoaded data ->
+            let
+                _ =
+                    debugOn "ImageLoaded" data
 
-                Just imageData ->
-                    ( { model | image = Loaded imageData }, Cmd.none )
+                naturalSize =
+                    { width = data.width
+                    , height = data.height
+                    }
+            in
+                case (getImageData model) of
+                    Nothing ->
+                        ( model, Cmd.none )
+
+                    Just imageData ->
+                        ( { model | image = Loaded { imageData | naturalSize = naturalSize } }, Cmd.none )
 
         SetImage data ->
             let
@@ -127,8 +143,8 @@ update msg model =
                             }
                         , zoom = 0.0
                         , naturalSize =
-                            { width = data.size.width
-                            , height = data.size.height
+                            { width = 0
+                            , height = 0
                             }
                         , pivot =
                             { x = 0.5
@@ -345,9 +361,17 @@ imageStyle model =
                     ]
 
 
-targetSrc : String -> Decoder Msg
-targetSrc src =
-    Json.Decode.succeed (ImageLoaded src)
+imageOnLoad : Attribute Msg
+imageOnLoad =
+    on "load" (Json.Decode.map ImageLoaded imageData)
+
+
+imageData : Json.Decode.Decoder ImageData
+imageData =
+    Json.Decode.map3 ImageData
+        (Json.Decode.at [ "target", "src" ] Json.Decode.string)
+        (Json.Decode.at [ "target", "width" ] Json.Decode.int)
+        (Json.Decode.at [ "target", "height" ] Json.Decode.int)
 
 
 view : Model -> Html Msg
@@ -360,7 +384,7 @@ view model =
 
                 Loading image ->
                     [ h4 [ class "elm-image-cropper__loading" ] [ text "Loading..." ]
-                    , img [ style [ ( "display", "none" ) ], on "load" <| targetSrc image.imageUrl, src image.imageUrl ] []
+                    , img [ style [ ( "display", "none" ) ], imageOnLoad, src image.imageUrl ] []
                     ]
 
                 Loaded image ->

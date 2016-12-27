@@ -12,10 +12,6 @@ import Image.Cropper as Cropper
 
 type alias ImageData =
     { url : String
-    , size :
-        { width : Int
-        , height : Int
-        }
     , crop :
         { width : Int
         , height : Int
@@ -184,7 +180,6 @@ subscriptions model =
 newImg : ImageData
 newImg =
     { url = "/assets/tv-digital-art-test-pattern-1920x1080-68386.jpg"
-    , size = { width = 1920, height = 1080 }
     , crop = { width = 360, height = 480 }
     }
 

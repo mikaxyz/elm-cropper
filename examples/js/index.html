@@ -20,25 +20,13 @@
 					}, {}) || {};
 
 	if (params.s && params.w && params.h) {
-		var imageObj = new Image();
-		imageObj.crossOrigin = "Anonymous";
-		imageObj.src = params.s;
-		imageObj.onload = function() {
-			app.ports.cropperWithImage.send({
-				url: params.s,
-				crop: {
-					width: parseInt(params.w, 10),
-					height: parseInt(params.h, 10)
-				},
-				size: {
-					width: imageObj.width,
-					height: imageObj.height
-				}
-			});
-		};
-		imageObj.onerror = function() {
-			alert("Image not available for cropping. Probably blocked by CORS policy.");
-		};
+		app.ports.cropperWithImage.send({
+			url: params.s,
+			crop: {
+				width: parseInt(params.w, 10),
+				height: parseInt(params.h, 10)
+			}
+		});
 	}
 
 	app.ports.imageCropped.subscribe(function(data) {
@@ -58,6 +46,10 @@
 		var imageObj = new Image();
 		imageObj.crossOrigin = "Anonymous";
 		imageObj.src = url;
+
+		imageObj.onerror = function() {
+			alert("Image not available for cropping. Probably blocked by CORS policy.");
+		};
 
 		imageObj.onload = function() {
 			context.drawImage(
