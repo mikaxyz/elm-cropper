@@ -57,7 +57,7 @@ cropOrigin image =
 
 initialModel : Model
 initialModel =
-    { image = Loading Image.Util.initialModel
+    { image = Unset
     , position = Position 0 0
     , drag = Nothing
     , boundingClientRect = DOM.Rectangle 0 0 0 0

@@ -6,7 +6,7 @@ import Util.Debug exposing (..)
 
 initialModel : Image.Types.Image
 initialModel =
-    { imageUrl = "/assets/30192_1600x1200-4-cute-cats.jpg"
+    { imageUrl = ""
     , crop =
         { width = 820
         , height = 312

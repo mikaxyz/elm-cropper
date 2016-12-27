@@ -177,10 +177,17 @@ subscriptions model =
 -- VIEW
 
 
-newImg : ImageData
-newImg =
+catImg : ImageData
+catImg =
+    { url = "/assets/30192_1600x1200-4-cute-cats.jpg"
+    , crop = { width = 320, height = 540 }
+    }
+
+
+testImg : ImageData
+testImg =
     { url = "/assets/tv-digital-art-test-pattern-1920x1080-68386.jpg"
-    , crop = { width = 360, height = 480 }
+    , crop = { width = 820, height = 312 }
     }
 
 
@@ -189,33 +196,61 @@ view model =
     let
         image =
             Cropper.getImageData model.cropperModel
+
+        ifImage : Html Msg -> Html Msg
+        ifImage a =
+            if image == Nothing then
+                div [] []
+            else
+                a
     in
         div []
             [ header []
                 [ h2 [] [ text "Elm Image Crop Example" ]
                 , p []
-                    [ text "Here is an image of some cats. You can use the sliders below to zoom or position it. Try dragging the image. If cats are not your thing: "
-                    , button [ onClick <| CropperMsg <| Cropper.SetImage newImg ] [ text "Try another image" ]
+                    [ text "Here is an image of "
+                    , button [ onClick <| CropperMsg <| Cropper.SetImage catImg ] [ text "some cats." ]
+                    , text "If you do not like cats then "
+                    , button [ onClick <| CropperMsg <| Cropper.SetImage testImg ] [ text "try this instead." ]
                     ]
-                , p []
-                    [ text "Crop to size:"
-                    , button [ onClick <| CropperMsg <| Cropper.CropTo { width = 240, height = 160 } ] [ text "240×160" ]
-                    , button [ onClick <| CropperMsg <| Cropper.CropTo { width = 640, height = 480 } ] [ text "640×480" ]
-                    , button [ onClick <| CropperMsg <| Cropper.CropTo { width = 820, height = 312 } ] [ text "820×312" ]
-                    ]
+                , ifImage <| p [] [ text "You can use the sliders below to zoom or position the image. Also try dragging it." ]
+                , ifImage <|
+                    p []
+                        [ text "Here are other sizes to crop to:"
+                        , button [ onClick <| CropperMsg <| Cropper.CropTo { width = 240, height = 160 } ] [ text "240×160" ]
+                        , button [ onClick <| CropperMsg <| Cropper.CropTo { width = 640, height = 480 } ] [ text "640×480" ]
+                        , button [ onClick <| CropperMsg <| Cropper.CropTo { width = 820, height = 312 } ] [ text "820×312" ]
+                        , button [ onClick <| CropperMsg <| Cropper.CropTo { width = 1080, height = 608 } ] [ text "1080×608" ]
+                        ]
+                , ifImage <|
+                    p []
+                        [ text "Following link sets up the cropper "
+                        , a [ href "/?s=/assets/burosch-1920x1080.jpg&w=240&h=130" ] [ text "from javascript" ]
+                        , text "."
+                        ]
                 ]
             , sourceInfoItems model.cropperModel
-            , div [] [ Html.map CropperMsg <| Cropper.view model.cropperModel ]
+            , cropper model.cropperModel
             , cropInfoItems model.cropperModel
             , zoomWidget model
             ]
+
+
+cropper : Cropper.Model -> Html Msg
+cropper model =
+    case (Cropper.getImageData model) of
+        Nothing ->
+            div [ class "info-bar" ] [ text "No image loaded..." ]
+
+        Just image ->
+            div [] [ Html.map CropperMsg <| Cropper.view model ]
 
 
 sourceInfoItems : Cropper.Model -> Html Msg
 sourceInfoItems model =
     case (Cropper.getImageData model) of
         Nothing ->
-            div [ class "info-bar" ] [ span [] [ text "No image..." ] ]
+            div [ class "info-bar" ] []
 
         Just image ->
             div [ class "info-bar", style [ ( "max-width", toString image.crop.width ++ "px" ) ] ]
@@ -238,7 +273,7 @@ cropInfoItems : Cropper.Model -> Html Msg
 cropInfoItems model =
     case (Cropper.getImageData model) of
         Nothing ->
-            div [ class "info-bar" ] [ span [] [ text "No image..." ] ]
+            div [ class "info-bar" ] []
 
         Just image ->
             div [ class "info-bar", style [ ( "max-width", toString image.crop.width ++ "px" ) ] ]
@@ -253,8 +288,7 @@ zoomWidget : Model -> Html Msg
 zoomWidget model =
     case (Cropper.getImageData model.cropperModel) of
         Nothing ->
-            div [ class "controls" ]
-                [ span [] [ text "No image..." ] ]
+            div [ class "controls" ] []
 
         Just image ->
             div [ class "controls" ]
