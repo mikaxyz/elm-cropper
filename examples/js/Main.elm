@@ -170,14 +170,14 @@ subscriptions model =
 
 catImg : ImageData
 catImg =
-    { url = "/assets/30192_1600x1200-4-cute-cats.jpg"
+    { url = "/assets/cats-1920x1272.jpg"
     , crop = { width = 320, height = 540 }
     }
 
 
 testImg : ImageData
 testImg =
-    { url = "/assets/tv-digital-art-test-pattern-1920x1080-68386.jpg"
+    { url = "/assets/test-1920x1200.png"
     , crop = { width = 820, height = 312 }
     }
 
@@ -197,7 +197,7 @@ view model =
     in
         div []
             [ header []
-                [ h2 [] [ text "Elm Image Crop Example" ]
+                [ h2 [] [ a [ href "/" ] [ text "Elm Image Crop Example" ] ]
                 , p []
                     [ text "Here is an image of "
                     , button [ onClick <| CropperMsg <| Cropper.SetImage catImg ] [ text "some cats." ]
@@ -216,7 +216,7 @@ view model =
                 , ifImage <|
                     p []
                         [ text "Following link sets up the cropper "
-                        , a [ href "/?s=/assets/burosch-1920x1080.jpg&w=240&h=130" ] [ text "from javascript" ]
+                        , a [ href "/?s=/assets/true-potus-1832x1920.jpg&w=320&h=240" ] [ text "from javascript" ]
                         , text "."
                         ]
                 ]
@@ -231,7 +231,7 @@ cropper : Cropper.Model -> Html Msg
 cropper model =
     case (Cropper.getImageData model) of
         Nothing ->
-            div [ class "info-bar" ] [ text "No image loaded..." ]
+            div [ class "info-bar" ] [ text "Waiting for an image to crop..." ]
 
         Just image ->
             div [] [ Html.map CropperMsg <| Cropper.view model ]
