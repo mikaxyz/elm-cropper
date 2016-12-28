@@ -14,6 +14,10 @@ body {
 	margin: 0 1em 3em 1em;
 }
 
+a {
+	color: @color__eigengrau;
+}
+
 header {
 	margin-bottom: 1em;
 }
@@ -132,5 +136,38 @@ button {
 			cursor: -webkit-grabbing;
 			cursor: grabbing;
 		}
+	}
+
+	&__loading {
+		color: tint(@color__eigengrau, 70%);
+		position: absolute;
+		top: 40%;
+		width: 100%;
+		text-align: center;
+		font-size: 10px;
+
+		&:before {
+			content: "";
+			display: inline-block;
+			width: 1em;
+			height: 1em;
+			margin-right: 0.5em;
+			background-color: tint(@color__eigengrau, 70%);
+			animation: elm-image-cropper-spinner 1.2s infinite ease-in-out;
+		}
+	}
+}
+
+
+
+@keyframes elm-image-cropper-spinner {
+	0% {
+		transform: perspective(120px) rotateX(0deg) rotateY(0deg);
+	}
+	50% {
+		transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg);
+	}
+	100% {
+		transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg);
 	}
 }

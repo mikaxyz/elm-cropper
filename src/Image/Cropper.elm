@@ -6,10 +6,6 @@ import Html.Events exposing (on, onWithOptions)
 import Json.Decode exposing (Decoder)
 import Mouse exposing (Position)
 import DOM
-
-
-{--INTERNAL--}
-
 import Util.Debug exposing (..)
 import Image.Types exposing (..)
 import Image.Util exposing (..)
@@ -24,27 +20,44 @@ type alias Drag =
     }
 
 
+type alias ImageData =
+    { src : String
+    , width : Int
+    , height : Int
+    }
+
+
 type alias Model =
-    { image : Image
+    { image : CropperImage
     , position : Position
     , drag : Maybe Drag
     , boundingClientRect : DOM.Rectangle
     }
 
 
-imageSize : Image -> Vector
-imageSize model =
-    Image.Util.imageSize model
+imageSize : Model -> Vector
+imageSize image =
+    case (getImageData image) of
+        Nothing ->
+            Vector 0 0
+
+        Just imageData ->
+            Image.Util.imageSize <| imageData
 
 
-cropOrigin : Image -> Vector
-cropOrigin model =
-    Image.Util.cropOrigin model
+cropOrigin : Model -> Vector
+cropOrigin image =
+    case (getImageData image) of
+        Nothing ->
+            Vector 0 0
+
+        Just imageData ->
+            Image.Util.cropOrigin <| imageData
 
 
 initialModel : Model
 initialModel =
-    { image = Image.Util.initialModel
+    { image = Unset
     , position = Position 0 0
     , drag = Nothing
     , boundingClientRect = DOM.Rectangle 0 0 0 0
@@ -61,7 +74,7 @@ measureElement =
 
 
 type Msg
-    = SetImage { url : String, width : Int, height : Int }
+    = SetImage { url : String, crop : Box }
     | CropTo Box
     | SetPivotX Float
     | SetPivotY Float
@@ -70,63 +83,122 @@ type Msg
     | DragAt Position
     | DragEnd Position
     | Measure DOM.Rectangle
+    | ImageLoaded ImageData
+
+
+getImageData : Model -> Maybe Image
+getImageData model =
+    case model.image of
+        Unset ->
+            Nothing
+
+        Loading image ->
+            Just image
+
+        Loaded image ->
+            Just image
+
+
+setImageData : CropperImage -> Image -> CropperImage
+setImageData image data =
+    case image of
+        Unset ->
+            Unset
+
+        Loading _ ->
+            Loading data
+
+        Loaded _ ->
+            Loaded data
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        ImageLoaded data ->
+            let
+                _ =
+                    debugOn "ImageLoaded" data
+
+                naturalSize =
+                    { width = data.width
+                    , height = data.height
+                    }
+            in
+                case (getImageData model) of
+                    Nothing ->
+                        ( model, Cmd.none )
+
+                    Just imageData ->
+                        ( { model | image = Loaded { imageData | naturalSize = naturalSize } }, Cmd.none )
+
         SetImage data ->
             let
                 image =
-                    model.image
-            in
-                ( { model
-                    | image =
-                        { image
-                            | imageUrl = data.url
-                            , zoom = 0.0
-                            , naturalSize =
-                                { width = data.width
-                                , height = data.height
-                                }
+                    Loading
+                        { imageUrl = data.url
+                        , crop =
+                            { width = data.crop.width
+                            , height = data.crop.height
+                            }
+                        , zoom = 0.0
+                        , naturalSize =
+                            { width = 0
+                            , height = 0
+                            }
+                        , pivot =
+                            { x = 0.5
+                            , y = 0.5
+                            }
                         }
-                  }
-                , Cmd.none
-                )
+            in
+                ( { model | image = image }, Cmd.none )
 
         CropTo crop ->
-            let
-                image =
-                    model.image
-            in
-                ( { model | image = { image | crop = crop } }, Cmd.none )
+            case (getImageData model) of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just imageData ->
+                    ( { model | image = setImageData model.image { imageData | crop = crop } }, Cmd.none )
 
         SetZoom zoom ->
-            let
-                image =
-                    model.image
-            in
-                ( { model | image = { image | zoom = zoom } }, Cmd.none )
+            case (getImageData model) of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just imageData ->
+                    ( { model | image = setImageData model.image { imageData | zoom = zoom } }, Cmd.none )
 
         SetPivotX x ->
-            let
-                image =
-                    model.image
+            case (getImageData model) of
+                Nothing ->
+                    ( model, Cmd.none )
 
-                pivot =
-                    model.image.pivot
-            in
-                ( { model | image = { image | pivot = { pivot | x = x } } }, Cmd.none )
+                Just imageData ->
+                    let
+                        pivot =
+                            getPivot model
+
+                        image =
+                            setImageData model.image { imageData | pivot = { pivot | x = x } }
+                    in
+                        ( { model | image = image }, Cmd.none )
 
         SetPivotY y ->
-            let
-                image =
-                    model.image
+            case (getImageData model) of
+                Nothing ->
+                    ( model, Cmd.none )
 
-                pivot =
-                    model.image.pivot
-            in
-                ( { model | image = { image | pivot = { pivot | y = y } } }, Cmd.none )
+                Just imageData ->
+                    let
+                        pivot =
+                            getPivot model
+
+                        image =
+                            setImageData model.image { imageData | pivot = { pivot | y = y } }
+                    in
+                        ( { model | image = image }, Cmd.none )
 
         Measure rect ->
             debugV "Measure" rect ( { model | boundingClientRect = rect }, Cmd.none )
@@ -142,14 +214,12 @@ update msg model =
                 debugOffV "DragAt" model.drag ( { model | drag = drag }, Cmd.none )
 
         DragEnd _ ->
-            let
-                image =
-                    model.image
+            case (getImageData model) of
+                Nothing ->
+                    ( model, Cmd.none )
 
-                pivot =
-                    getPivot model
-            in
-                debugOn "DragEnd" ( { model | image = { image | pivot = pivot }, drag = Nothing }, Cmd.none )
+                Just imageData ->
+                    debugOn "DragEnd" ( { model | image = setImageData model.image { imageData | pivot = getPivot model }, drag = Nothing }, Cmd.none )
 
 
 dragDistance : Maybe Drag -> Position
@@ -164,39 +234,47 @@ dragDistance drag =
 
 getPivot : Model -> Vector
 getPivot model =
-    case model.drag of
-        Nothing ->
-            model.image.pivot
+    case model.image of
+        Unset ->
+            Vector 0.5 0.5
 
-        Just { start, current } ->
-            let
-                currentHeight =
-                    (imageSize model.image).y
+        Loading image ->
+            Vector 0.5 0.5
 
-                currentWidth =
-                    (imageSize model.image).x
+        Loaded image ->
+            case model.drag of
+                Nothing ->
+                    image.pivot
 
-                rangeX =
-                    debugOff "rangeX" (toFloat model.image.crop.width / (currentWidth - toFloat model.image.crop.width))
+                Just { start, current } ->
+                    let
+                        currentHeight =
+                            (imageSize model).y
 
-                rangeY =
-                    debugOff "rangeY" (toFloat model.image.crop.height / (currentHeight - toFloat model.image.crop.height))
+                        currentWidth =
+                            (imageSize model).x
 
-                distance =
-                    debugOff "dragDistance" (dragDistance model.drag)
+                        rangeX =
+                            debugOff "rangeX" (toFloat image.crop.width / (currentWidth - toFloat image.crop.width))
 
-                pivotX =
-                    (toFloat distance.x / model.boundingClientRect.width) * rangeX
+                        rangeY =
+                            debugOff "rangeY" (toFloat image.crop.height / (currentHeight - toFloat image.crop.height))
 
-                pivotY =
-                    (toFloat distance.y / model.boundingClientRect.height) * rangeY
+                        distance =
+                            debugOff "dragDistance" (dragDistance model.drag)
 
-                dragPivot =
-                    debugOff "dragPivot" (Vector pivotX pivotY)
-            in
-                Vector
-                    (Basics.clamp 0.0 1.0 (model.image.pivot.x + dragPivot.x))
-                    (Basics.clamp 0.0 1.0 (model.image.pivot.y + dragPivot.y))
+                        pivotX =
+                            (toFloat distance.x / model.boundingClientRect.width) * rangeX
+
+                        pivotY =
+                            (toFloat distance.y / model.boundingClientRect.height) * rangeY
+
+                        dragPivot =
+                            debugOff "dragPivot" (Vector pivotX pivotY)
+                    in
+                        Vector
+                            (Basics.clamp 0.0 1.0 (image.pivot.x + dragPivot.x))
+                            (Basics.clamp 0.0 1.0 (image.pivot.y + dragPivot.y))
 
 
 
@@ -241,47 +319,97 @@ cropperStyle box =
 
 imageStyle : Model -> Attribute Msg
 imageStyle model =
-    let
-        -- RELATIVE SIZE
-        size =
-            imageSize model.image
+    case model.image of
+        Unset ->
+            style [ ( "background-color", "red" ) ]
 
-        width =
-            debugOn "width" <| size.x / toFloat model.image.crop.width * 100
+        Loading image ->
+            style [ ( "background-color", "green" ) ]
 
-        height =
-            debugOn "height" <| size.y / toFloat model.image.crop.height * 100
+        Loaded image ->
+            let
+                -- RELATIVE SIZE
+                size =
+                    imageSize model
 
-        -- ORIGIN
-        currentPivot =
-            getPivot model
+                width =
+                    debugOn "width" <| size.x / toFloat image.crop.width * 100
 
-        posX =
-            debug "posX" (-(width - 100.0) * currentPivot.x)
+                height =
+                    debugOn "height" <| size.y / toFloat image.crop.height * 100
 
-        posY =
-            debug "posY" (-(height - 100.0) * currentPivot.y)
-    in
-        style
-            [ ( "position", "absolute" )
-            , ( "min-width", "0" )
-            , ( "max-width", "none" )
-            , ( "display", "block" )
-            , ( "pointer-events", "none" )
-            , ( "width", toString width ++ "%" )
-            , ( "height", toString height ++ "%" )
-            , ( "left", toString posX ++ "%" )
-            , ( "top", toString posY ++ "%" )
-            ]
+                -- ORIGIN
+                currentPivot =
+                    getPivot model
+
+                posX =
+                    debug "posX" (-(width - 100.0) * currentPivot.x)
+
+                posY =
+                    debug "posY" (-(height - 100.0) * currentPivot.y)
+            in
+                style
+                    [ ( "position", "absolute" )
+                    , ( "min-width", "0" )
+                    , ( "max-width", "none" )
+                    , ( "display", "block" )
+                    , ( "pointer-events", "none" )
+                    , ( "width", toString width ++ "%" )
+                    , ( "height", toString height ++ "%" )
+                    , ( "left", toString posX ++ "%" )
+                    , ( "top", toString posY ++ "%" )
+                    ]
+
+
+imageOnLoad : Attribute Msg
+imageOnLoad =
+    on "load" (Json.Decode.map ImageLoaded imageData)
+
+
+imageData : Json.Decode.Decoder ImageData
+imageData =
+    Json.Decode.map3 ImageData
+        (Json.Decode.at [ "target", "src" ] Json.Decode.string)
+        (Json.Decode.at [ "target", "width" ] Json.Decode.int)
+        (Json.Decode.at [ "target", "height" ] Json.Decode.int)
 
 
 view : Model -> Html Msg
 view model =
-    div [ class "elm-image-cropper", wrapperStyle model.image.crop ]
-        [ div [ class "elm-image-cropper__frame", cropperStyle model.image.crop, on "mouseenter" measureElement, onMouseDown ]
-            [ img [ class "elm-image-cropper__image", imageStyle model, src model.image.imageUrl ] []
+    let
+        content =
+            case model.image of
+                Unset ->
+                    [ h4 [ class "elm-image-cropper__loading" ] [ text "Waiting..." ] ]
+
+                Loading image ->
+                    [ h4 [ class "elm-image-cropper__loading" ] [ text "Loading..." ]
+                    , img [ style [ ( "display", "none" ) ], imageOnLoad, src image.imageUrl ] []
+                    ]
+
+                Loaded image ->
+                    [ img [ class "elm-image-cropper__image", imageStyle model, src image.imageUrl ] [] ]
+
+        wrapperStyleC =
+            case getImageData model of
+                Nothing ->
+                    style []
+
+                Just imageData ->
+                    wrapperStyle imageData.crop
+
+        cropperStyleC =
+            case getImageData model of
+                Nothing ->
+                    style []
+
+                Just imageData ->
+                    cropperStyle imageData.crop
+    in
+        div [ class "elm-image-cropper", wrapperStyleC ]
+            [ div [ class "elm-image-cropper__frame", cropperStyleC, on "mouseenter" measureElement, onMouseDown ]
+                content
             ]
-        ]
 
 
 onMouseDown : Attribute Msg

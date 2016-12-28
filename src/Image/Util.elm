@@ -6,15 +6,15 @@ import Util.Debug exposing (..)
 
 initialModel : Image.Types.Image
 initialModel =
-    { imageUrl = "/assets/30192_1600x1200-4-cute-cats.jpg"
+    { imageUrl = ""
     , crop =
         { width = 820
         , height = 312
         }
     , zoom = 0.0
     , naturalSize =
-        { width = 1600
-        , height = 1200
+        { width = 0
+        , height = 0
         }
     , pivot =
         { x = 0.5

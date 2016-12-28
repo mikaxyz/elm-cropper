@@ -22,8 +22,10 @@
 	if (params.s && params.w && params.h) {
 		app.ports.cropperWithImage.send({
 			url: params.s,
-			width: parseInt(params.w, 10),
-			height: parseInt(params.h, 10)
+			crop: {
+				width: parseInt(params.w, 10),
+				height: parseInt(params.h, 10)
+			}
 		});
 	}
 
@@ -42,7 +44,13 @@
 		var previewWindow = window.open();
 
 		var imageObj = new Image();
+		imageObj.crossOrigin = "Anonymous";
 		imageObj.src = url;
+
+		imageObj.onerror = function() {
+			alert("Image not available for cropping. Probably blocked by CORS policy.");
+		};
+
 		imageObj.onload = function() {
 			context.drawImage(
 					imageObj,
