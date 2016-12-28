@@ -1,6 +1,5 @@
 port module Main exposing (..)
 
-import Util.Debug exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick)
@@ -133,13 +132,8 @@ update msg model =
         ExportImage ->
             ( model, imageCropped (createCropData model) )
 
-        --            ( model, imageCropped model )
         SetImageData data ->
-            let
-                _ =
-                    Debug.log "Teeeest" data
-            in
-                update (CropperMsg <| (Cropper.SetImage data)) model
+            update (CropperMsg <| (Cropper.SetImage data)) model
 
         Zoom zoom ->
             update (CropperMsg <| Cropper.SetZoom (Result.withDefault 0 (String.toFloat zoom))) model
@@ -152,9 +146,6 @@ update msg model =
 
         CropperMsg subMsg ->
             let
-                _ =
-                    debugOff "CropperMsg" subMsg
-
                 ( updatedSubModel, subCmd ) =
                     Cropper.update subMsg model.cropperModel
             in

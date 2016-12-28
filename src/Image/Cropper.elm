@@ -6,7 +6,6 @@ import Html.Events exposing (on, onWithOptions)
 import Json.Decode exposing (Decoder)
 import Mouse exposing (Position)
 import DOM
-import Util.Debug exposing (..)
 import Image.Types exposing (..)
 import Image.Util exposing (..)
 
@@ -117,9 +116,6 @@ update msg model =
     case msg of
         ImageLoaded data ->
             let
-                _ =
-                    debugOn "ImageLoaded" data
-
                 naturalSize =
                     { width = data.width
                     , height = data.height
@@ -201,17 +197,17 @@ update msg model =
                         ( { model | image = image }, Cmd.none )
 
         Measure rect ->
-            debugV "Measure" rect ( { model | boundingClientRect = rect }, Cmd.none )
+            ( { model | boundingClientRect = rect }, Cmd.none )
 
         DragStart xy ->
-            debugV "DragStart" xy ( { model | drag = (Just (Drag xy xy)) }, Cmd.none )
+            ( { model | drag = (Just (Drag xy xy)) }, Cmd.none )
 
         DragAt xy ->
             let
                 drag =
                     (Maybe.map (\{ start } -> Drag start xy) model.drag)
             in
-                debugOffV "DragAt" model.drag ( { model | drag = drag }, Cmd.none )
+                ( { model | drag = drag }, Cmd.none )
 
         DragEnd _ ->
             case (getImageData model) of
@@ -219,7 +215,7 @@ update msg model =
                     ( model, Cmd.none )
 
                 Just imageData ->
-                    debugOn "DragEnd" ( { model | image = setImageData model.image { imageData | pivot = getPivot model }, drag = Nothing }, Cmd.none )
+                    ( { model | image = setImageData model.image { imageData | pivot = getPivot model }, drag = Nothing }, Cmd.none )
 
 
 dragDistance : Maybe Drag -> Position
@@ -255,13 +251,13 @@ getPivot model =
                             (imageSize model).x
 
                         rangeX =
-                            debugOff "rangeX" (toFloat image.crop.width / (currentWidth - toFloat image.crop.width))
+                            (toFloat image.crop.width / (currentWidth - toFloat image.crop.width))
 
                         rangeY =
-                            debugOff "rangeY" (toFloat image.crop.height / (currentHeight - toFloat image.crop.height))
+                            (toFloat image.crop.height / (currentHeight - toFloat image.crop.height))
 
                         distance =
-                            debugOff "dragDistance" (dragDistance model.drag)
+                            dragDistance model.drag
 
                         pivotX =
                             (toFloat distance.x / model.boundingClientRect.width) * rangeX
@@ -270,7 +266,7 @@ getPivot model =
                             (toFloat distance.y / model.boundingClientRect.height) * rangeY
 
                         dragPivot =
-                            debugOff "dragPivot" (Vector pivotX pivotY)
+                            Vector pivotX pivotY
                     in
                         Vector
                             (Basics.clamp 0.0 1.0 (image.pivot.x + dragPivot.x))
@@ -333,20 +329,20 @@ imageStyle model =
                     imageSize model
 
                 width =
-                    debugOn "width" <| size.x / toFloat image.crop.width * 100
+                    size.x / toFloat image.crop.width * 100
 
                 height =
-                    debugOn "height" <| size.y / toFloat image.crop.height * 100
+                    size.y / toFloat image.crop.height * 100
 
                 -- ORIGIN
                 currentPivot =
                     getPivot model
 
                 posX =
-                    debug "posX" (-(width - 100.0) * currentPivot.x)
+                    -(width - 100.0) * currentPivot.x
 
                 posY =
-                    debug "posY" (-(height - 100.0) * currentPivot.y)
+                    -(height - 100.0) * currentPivot.y
             in
                 style
                     [ ( "position", "absolute" )
