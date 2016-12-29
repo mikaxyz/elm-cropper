@@ -111,6 +111,16 @@ setImageData image data =
             Loaded data
 
 
+cropTo : ( Box, Box ) -> Box
+cropTo ( crop, naturalSize ) =
+    if naturalSize.width >= crop.width && naturalSize.height >= crop.height then
+        crop
+    else
+        { width = naturalSize.width
+        , height = naturalSize.height
+        }
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -126,7 +136,11 @@ update msg model =
                         ( model, Cmd.none )
 
                     Just imageData ->
-                        ( { model | image = Loaded { imageData | naturalSize = naturalSize } }, Cmd.none )
+                        let
+                            crop =
+                                cropTo ( imageData.crop, naturalSize )
+                        in
+                            ( { model | image = Loaded { imageData | crop = crop, naturalSize = naturalSize } }, Cmd.none )
 
         SetImage data ->
             let
@@ -156,7 +170,11 @@ update msg model =
                     ( model, Cmd.none )
 
                 Just imageData ->
-                    ( { model | image = setImageData model.image { imageData | crop = crop } }, Cmd.none )
+                    let
+                        validCrop =
+                            cropTo ( crop, imageData.naturalSize )
+                    in
+                        ( { model | image = setImageData model.image { imageData | crop = validCrop } }, Cmd.none )
 
         SetZoom zoom ->
             case (getImageData model) of

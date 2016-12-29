@@ -219,6 +219,12 @@ view model =
                         , a [ href "/?s=/assets/true-potus-1832x1920.jpg&w=320&h=240" ] [ text "from javascript" ]
                         , text "."
                         ]
+                , ifImage <|
+                    p []
+                        [ text "Here is an "
+                        , a [ href "/?s=/assets/little-girl-720x480.jpg&w=900&h=900" ] [ text "image too small to be cropped" ]
+                        , text ". The crop size is set to image size. (This should be handled by caller)"
+                        ]
                 ]
             , sourceInfoItems model.cropperModel
             , cropper model.cropperModel
