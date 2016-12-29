@@ -11,11 +11,15 @@ body {
 	-webkit-font-smoothing: antialiased;
 	text-rendering: optimizelegibility;
 	-moz-osx-font-smoothing: grayscale;
-	margin: 0 1em 3em 1em;
+	margin: 4em 1em 3em 1em;
+}
+
+p {
+	margin: 0 0 0.5em;
 }
 
 a {
-	color: @color__eigengrau;
+	color: inherit;
 }
 
 header {
@@ -78,6 +82,7 @@ button {
 }
 
 .controls {
+	margin-bottom: 1em;
 
 	label {
 		padding-right: 0.5em;
@@ -169,5 +174,25 @@ button {
 	}
 	100% {
 		transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg);
+	}
+}
+
+footer {
+	background-color: @color__eigengrau;
+	color: white;
+	font-size: 13px;
+	position: fixed;
+	left: 0;
+	right: 0;
+	top: 0;
+	z-index: 999;
+
+	a {
+		font-weight: bold;
+		color: lightgreen;
+	}
+
+	p {
+		margin: 0.5em 0;
 	}
 }

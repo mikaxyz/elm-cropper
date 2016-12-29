@@ -170,15 +170,15 @@ subscriptions model =
 
 catImg : ImageData
 catImg =
-    { url = "/assets/cats-1920x1272.jpg"
-    , crop = { width = 320, height = 540 }
+    { url = "/assets/kittens-1280x711.jpg"
+    , crop = { width = 820, height = 312 }
     }
 
 
 testImg : ImageData
 testImg =
-    { url = "/assets/test-1920x1200.png"
-    , crop = { width = 820, height = 312 }
+    { url = "/assets/little-girl-1920-1280.jpg"
+    , crop = { width = 1080, height = 608 }
     }
 
 
@@ -213,23 +213,23 @@ view model =
                         , button [ onClick <| CropperMsg <| Cropper.CropTo { width = 820, height = 312 } ] [ text "820×312" ]
                         , button [ onClick <| CropperMsg <| Cropper.CropTo { width = 1080, height = 608 } ] [ text "1080×608" ]
                         ]
-                , ifImage <|
-                    p []
-                        [ text "Following link sets up the cropper "
-                        , a [ href "/?s=/assets/true-potus-1832x1920.jpg&w=320&h=240" ] [ text "from javascript" ]
-                        , text "."
-                        ]
-                , ifImage <|
-                    p []
-                        [ text "Here is an "
-                        , a [ href "/?s=/assets/little-girl-720x480.jpg&w=900&h=900" ] [ text "image too small to be cropped" ]
-                        , text ". The crop size is set to image size. (This should be handled by caller)"
-                        ]
                 ]
             , sourceInfoItems model.cropperModel
             , cropper model.cropperModel
             , cropInfoItems model.cropperModel
             , zoomWidget model
+            , ifImage <|
+                p []
+                    [ text "Following link sets up the cropper "
+                    , a [ href "/?s=/assets/test-1920x1200.png&w=320&h=240" ] [ text "from javascript" ]
+                    , text "."
+                    ]
+            , ifImage <|
+                p []
+                    [ text "Here is an "
+                    , a [ href "/?s=/assets/true-potus-611x640.jpg&w=900&h=900" ] [ text "image too small to be cropped" ]
+                    , text ". The crop size is set to image size. (This should be handled by caller)"
+                    ]
             ]
 
 
