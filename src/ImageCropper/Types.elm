@@ -1,4 +1,4 @@
-module Image.Types exposing (..)
+module ImageCropper.Types exposing (..)
 
 
 type alias Vector =

@@ -1,4 +1,4 @@
-module Image.Cropper exposing (..)
+module ImageCropper exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -6,8 +6,8 @@ import Html.Events exposing (on, onWithOptions)
 import Json.Decode exposing (Decoder)
 import Mouse exposing (Position)
 import DOM
-import Image.Types exposing (..)
-import Image.Util exposing (..)
+import ImageCropper.Types as Types exposing (..)
+import ImageCropper.Util as Util exposing (..)
 
 
 -- MODEL
@@ -41,7 +41,7 @@ imageSize image =
             Vector 0 0
 
         Just imageData ->
-            Image.Util.imageSize <| imageData
+            Util.imageSize <| imageData
 
 
 cropOrigin : Model -> Vector
@@ -51,7 +51,7 @@ cropOrigin image =
             Vector 0 0
 
         Just imageData ->
-            Image.Util.cropOrigin <| imageData
+            Util.cropOrigin <| imageData
 
 
 initialModel : Model

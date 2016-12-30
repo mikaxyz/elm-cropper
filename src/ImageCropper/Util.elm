@@ -1,9 +1,9 @@
-module Image.Util exposing (..)
+module ImageCropper.Util exposing (..)
 
-import Image.Types exposing (..)
+import ImageCropper.Types as Types exposing (..)
 
 
-initialModel : Image.Types.Image
+initialModel : Types.Image
 initialModel =
     { imageUrl = ""
     , crop =
@@ -53,7 +53,7 @@ imageSize { crop, naturalSize, zoom } =
         Vector width height
 
 
-cropOrigin : Image.Types.Image -> Vector
+cropOrigin : Types.Image -> Vector
 cropOrigin image =
     let
         size =

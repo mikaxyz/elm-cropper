@@ -1,4 +1,4 @@
-module Util.Debug exposing (..)
+module ImageCropper.Debug exposing (..)
 
 
 debugV : String -> v -> a -> a

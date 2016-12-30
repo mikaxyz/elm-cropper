@@ -3,7 +3,7 @@ port module Main exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick)
-import Image.Cropper as Cropper
+import ImageCropper as Cropper
 
 
 -- PORTS
