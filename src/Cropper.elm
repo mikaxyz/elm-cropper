@@ -6,6 +6,9 @@ module Cropper
         , update
         , subscriptions
         , init
+        , zoom
+        , pivotX
+        , pivotY
         )
 
 {-| Elm Cropper
@@ -17,7 +20,7 @@ module Cropper
 @docs Model, Msg
 
 # Helpers
-@docs init
+@docs init, zoom, pivotX, pivotY
 -}
 
 import Html exposing (..)
@@ -27,6 +30,7 @@ import Json.Decode exposing (Decoder)
 import DOM
 import Util.Debug exposing (..)
 import Cropper.Types as Types exposing (..)
+import Cropper.Helper as Helper exposing (..)
 
 
 {-| TODO: Doc
@@ -36,6 +40,8 @@ type alias Model =
     , crop : Rect
     , image : Maybe Image
     , boundingClientRect : DOM.Rectangle
+    , pivot : Vector
+    , zoom : Float
     }
 
 
@@ -44,6 +50,7 @@ type alias Model =
 type Msg
     = ImageLoaded Image
     | Measure DOM.Rectangle
+    | Zoom Float
 
 
 {-| TODO: Doc
@@ -54,6 +61,8 @@ init { url, crop } =
     , crop = crop
     , image = Nothing
     , boundingClientRect = DOM.Rectangle 0 0 0 0
+    , pivot = Vector 0.5 0.5
+    , zoom = 0.0
     }
 
 
@@ -74,6 +83,35 @@ subscriptions model =
 
 {-| TODO: Doc
 -}
+zoom : Model -> Float -> Model
+zoom model zoom =
+    { model | zoom = zoom }
+
+
+{-| TODO: Doc
+-}
+pivotX : Model -> Float -> Model
+pivotX model x =
+    let
+        pivot =
+            model.pivot
+    in
+        { model | pivot = { pivot | x = Basics.clamp 0.0 1.0 x } }
+
+
+{-| TODO: Doc
+-}
+pivotY : Model -> Float -> Model
+pivotY model y =
+    let
+        pivot =
+            model.pivot
+    in
+        { model | pivot = { pivot | y = Basics.clamp 0.0 1.0 y } }
+
+
+{-| TODO: Doc
+-}
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -82,6 +120,9 @@ update msg model =
 
         Measure rect ->
             debugV "Measure" rect ( { model | boundingClientRect = rect }, Cmd.none )
+
+        Zoom zoom ->
+            ( { model | zoom = zoom }, Cmd.none )
 
 
 
@@ -108,6 +149,51 @@ cropperStyle rect =
         , ( "overflow", "hidden" )
         , ( "max-width", "100%" )
         ]
+
+
+imageStyle : Model -> Attribute Msg
+imageStyle model =
+    case model.image of
+        Nothing ->
+            style []
+
+        Just image ->
+            let
+                -- RELATIVE SIZE
+                size =
+                    imageSize
+                        { image = image
+                        , crop = model.crop
+                        , zoom = model.zoom
+                        }
+
+                width =
+                    size.x / toFloat model.crop.width * 100
+
+                height =
+                    size.y / toFloat model.crop.height * 100
+
+                -- ORIGIN
+                currentPivot =
+                    getPivot model
+
+                posX =
+                    -(width - 100.0) * currentPivot.x
+
+                posY =
+                    -(height - 100.0) * currentPivot.y
+            in
+                style
+                    [ ( "position", "absolute" )
+                    , ( "min-width", "0" )
+                    , ( "max-width", "none" )
+                    , ( "display", "block" )
+                    , ( "pointer-events", "none" )
+                    , ( "width", toString width ++ "%" )
+                    , ( "height", toString height ++ "%" )
+                    , ( "left", toString posX ++ "%" )
+                    , ( "top", toString posY ++ "%" )
+                    ]
 
 
 {-| TODO: Doc
@@ -140,7 +226,7 @@ imageLoader model =
                 ]
 
         Just image ->
-            img [ class "elm-image-cropper__image", src image.src ] []
+            img [ class "elm-image-cropper__image", imageStyle model, src image.src ] []
 
 
 decodeImage : Json.Decode.Decoder Image
@@ -154,3 +240,18 @@ decodeImage =
 imageOnLoad : Attribute Msg
 imageOnLoad =
     on "load" (Json.Decode.map ImageLoaded decodeImage)
+
+
+{-|
+
+
+asd
+as
+das
+d
+asd
+
+-}
+getPivot : Model -> Vector
+getPivot model =
+    model.pivot
