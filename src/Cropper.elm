@@ -24,6 +24,7 @@ import Html exposing (..)
 import Html.Attributes exposing (src, class, style)
 import Html.Events exposing (on)
 import Json.Decode exposing (Decoder)
+import DOM
 import Util.Debug exposing (..)
 
 
@@ -46,6 +47,7 @@ type alias Model =
     { url : String
     , crop : Rect
     , image : Maybe Image
+    , boundingClientRect : DOM.Rectangle
     }
 
 
@@ -53,13 +55,14 @@ type alias Model =
 -}
 type Msg
     = ImageLoaded Image
+    | Measure DOM.Rectangle
 
 
 {-| TODO: Doc
 -}
 init : { url : String, crop : { width : Int, height : Int } } -> Model
 init { url, crop } =
-    Model url crop Nothing
+    Model url crop Nothing (DOM.Rectangle 0 0 0 0)
 
 
 
@@ -84,6 +87,9 @@ update msg model =
     case msg of
         ImageLoaded image ->
             debugV "ImageLoaded" image ( { model | image = Just image }, Cmd.none )
+
+        Measure rect ->
+            debugV "Measure" rect ( { model | boundingClientRect = rect }, Cmd.none )
 
 
 
@@ -117,9 +123,19 @@ cropperStyle rect =
 view : Model -> Html Msg
 view model =
     div [ class "elm-image-cropper", wrapperStyle model.crop ]
-        [ div [ class "elm-image-cropper__frame", cropperStyle model.crop ]
+        [ div [ class "elm-image-cropper__frame", boundingClientRect, cropperStyle model.crop ]
             [ imageLoader model ]
         ]
+
+
+boundingClientRect : Attribute Msg
+boundingClientRect =
+    on "mouseenter" decodeBoundingClientRect
+
+
+decodeBoundingClientRect : Decoder Msg
+decodeBoundingClientRect =
+    Json.Decode.map Measure (DOM.target <| DOM.boundingClientRect)
 
 
 imageLoader : Model -> Html Msg
