@@ -22,6 +22,9 @@ module Cropper
 
 import Html exposing (..)
 import Html.Attributes exposing (src, class, style)
+import Html.Events exposing (on)
+import Json.Decode exposing (Decoder)
+import Util.Debug exposing (..)
 
 
 type alias Rect =
@@ -49,7 +52,7 @@ type alias Model =
 {-| TODO: Doc
 -}
 type Msg
-    = SetImage { url : String, crop : Rect }
+    = ImageLoaded Image
 
 
 {-| TODO: Doc
@@ -79,8 +82,8 @@ subscriptions model =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        SetImage { url, crop } ->
-            ( model, Cmd.none )
+        ImageLoaded image ->
+            debugV "ImageLoaded" image ( { model | image = Just image }, Cmd.none )
 
 
 
@@ -115,5 +118,31 @@ view : Model -> Html Msg
 view model =
     div [ class "elm-image-cropper", wrapperStyle model.crop ]
         [ div [ class "elm-image-cropper__frame", cropperStyle model.crop ]
-            [ img [ class "elm-image-cropper__image", src model.url ] [] ]
+            [ imageLoader model ]
         ]
+
+
+imageLoader : Model -> Html Msg
+imageLoader model =
+    case model.image of
+        Nothing ->
+            div []
+                [ h4 [ class "elm-image-cropper__loading" ] [ text "Loading..." ]
+                , img [ style [ ( "display", "none" ) ], imageOnLoad, src model.url ] []
+                ]
+
+        Just image ->
+            img [ class "elm-image-cropper__image", src image.src ] []
+
+
+decodeImage : Json.Decode.Decoder Image
+decodeImage =
+    Json.Decode.map3 Image
+        (Json.Decode.at [ "target", "src" ] Json.Decode.string)
+        (Json.Decode.at [ "target", "width" ] Json.Decode.int)
+        (Json.Decode.at [ "target", "height" ] Json.Decode.int)
+
+
+imageOnLoad : Attribute Msg
+imageOnLoad =
+    on "load" (Json.Decode.map ImageLoaded decodeImage)
