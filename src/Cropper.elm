@@ -26,19 +26,7 @@ import Html.Events exposing (on)
 import Json.Decode exposing (Decoder)
 import DOM
 import Util.Debug exposing (..)
-
-
-type alias Rect =
-    { width : Int
-    , height : Int
-    }
-
-
-type alias Image =
-    { src : String
-    , width : Int
-    , height : Int
-    }
+import Cropper.Types as Types exposing (..)
 
 
 {-| TODO: Doc
