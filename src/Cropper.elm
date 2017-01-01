@@ -62,7 +62,11 @@ type Msg
 -}
 init : { url : String, crop : { width : Int, height : Int } } -> Model
 init { url, crop } =
-    Model url crop Nothing (DOM.Rectangle 0 0 0 0)
+    { url = url
+    , crop = crop
+    , image = Nothing
+    , boundingClientRect = DOM.Rectangle 0 0 0 0
+    }
 
 
 
