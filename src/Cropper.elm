@@ -27,7 +27,6 @@ module Cropper
 -}
 
 import Html exposing (..)
-import Util.Debug exposing (..)
 import Cropper.Types as Types exposing (..)
 import Cropper.Helper as Helper exposing (..)
 import Cropper.View as View exposing (..)
@@ -146,19 +145,19 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ImageLoaded image ->
-            debugV "ImageLoaded" image ( crop { model | image = Just image } model.crop, Cmd.none )
+            ( crop { model | image = Just image } model.crop, Cmd.none )
 
         Measure rect ->
-            debugV "Measure" rect ( { model | boundingClientRect = rect }, Cmd.none )
+            ( { model | boundingClientRect = rect }, Cmd.none )
 
         Zoom zoom ->
             ( { model | zoom = zoom }, Cmd.none )
 
         DragStart xy ->
-            debugV "DragStart" xy ( { model | drag = (Just (Drag xy xy)) }, Cmd.none )
+            ( { model | drag = (Just (Drag xy xy)) }, Cmd.none )
 
         DragEnd xy ->
-            debugV "DragEnd" xy ( { model | pivot = getPivot model, drag = Nothing }, Cmd.none )
+            ( { model | pivot = getPivot model, drag = Nothing }, Cmd.none )
 
         DragAt xy ->
             let
