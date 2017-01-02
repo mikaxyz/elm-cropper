@@ -111,6 +111,7 @@ view model =
                 , button [ onClick <| Crop { width = 820, height = 312 } ] [ text "820×312" ]
                 , button [ onClick <| Crop { width = 1080, height = 608 } ] [ text "1080×608" ]
                 ]
+            , p [ class "info" ] [ span [] [ text "You can use the sliders below to zoom or position the image. Also try dragging it. Clicking \"Export\" sends the crop data to javascript where the cropped image is created using canvas..." ] ]
             ]
         , sourceInfoItems model.cropper
         , Cropper.view model.cropper |> Html.map ToCropper
@@ -134,10 +135,11 @@ view model =
             , a [ href "?s=/assets/test-1920x1200.png&w=320&h=240" ] [ text "from javascript" ]
             , text "."
             ]
+        , p [ class "info" ] [ span [] [ text "If an image is smaller than the crop size the cropper \"fails\" silently and the crop size is set to image size." ] ]
         , p []
             [ text "Here is an "
             , a [ href "?s=/assets/true-potus-611x640.jpg&w=900&h=900" ] [ text "image too small to be cropped" ]
-            , text ". The crop size is set to image size. (This should be handled by caller)"
+            , text "."
             ]
         ]
 
