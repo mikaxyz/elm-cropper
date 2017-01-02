@@ -36,6 +36,11 @@ pivotY model y =
     pivot model { x = model.pivot.x, y = y }
 
 
+crop : Model -> { width : Int, height : Int } -> Model
+crop model crop =
+    { model | crop = crop }
+
+
 dragDistance : Maybe Drag -> Position
 dragDistance drag =
     case drag of

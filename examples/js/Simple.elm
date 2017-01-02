@@ -2,7 +2,7 @@ module Simple exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onInput)
+import Html.Events exposing (onInput, onClick)
 import Cropper
 
 
@@ -40,6 +40,8 @@ type Msg
     | Zoom String
     | PivotX String
     | PivotY String
+    | CropImage { url : String, crop : { width : Int, height : Int } }
+    | Crop { width : Int, height : Int }
 
 
 
@@ -74,6 +76,12 @@ update msg model =
         PivotY y ->
             ( { model | cropper = Cropper.pivotY model.cropper (Result.withDefault 0 (String.toFloat y)) }, Cmd.none )
 
+        CropImage data ->
+            ( { model | cropper = Cropper.init data }, Cmd.none )
+
+        Crop crop ->
+            ( { model | cropper = Cropper.crop model.cropper crop }, Cmd.none )
+
 
 
 -- VIEW
@@ -82,7 +90,23 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div []
-        [ sourceInfoItems model.cropper
+        [ header []
+            [ h2 [] [ a [ href "/" ] [ text "Elm Image Crop Example" ] ]
+            , p []
+                [ text "Here is an image of "
+                , strong [] [ text "some cats" ]
+                , text ". If you do not like cats then "
+                , button [ onClick <| CropImage { url = "/assets/little-girl-1920-1280.jpg", crop = { width = 1080, height = 608 } } ] [ text "try this instead." ]
+                ]
+            , p []
+                [ text "Here are other sizes to crop to:"
+                , button [ onClick <| Crop { width = 240, height = 160 } ] [ text "240×160" ]
+                , button [ onClick <| Crop { width = 640, height = 480 } ] [ text "640×480" ]
+                , button [ onClick <| Crop { width = 820, height = 312 } ] [ text "820×312" ]
+                , button [ onClick <| Crop { width = 1080, height = 608 } ] [ text "1080×608" ]
+                ]
+            ]
+        , sourceInfoItems model.cropper
         , Cropper.view model.cropper |> Html.map ToCropper
         , cropInfoItems model.cropper
         , div [ class "controls" ]

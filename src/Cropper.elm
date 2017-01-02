@@ -9,6 +9,7 @@ module Cropper
         , zoom
         , pivotX
         , pivotY
+        , crop
         , imageSize
         , cropOrigin
         )
@@ -22,7 +23,7 @@ module Cropper
 @docs Model, Msg
 
 # Helpers
-@docs init, zoom, pivotX, pivotY, imageSize, cropOrigin
+@docs init, zoom, pivotX, pivotY, crop, imageSize, cropOrigin
 -}
 
 import Html exposing (..)
@@ -86,6 +87,13 @@ pivotX =
 pivotY : Model -> Float -> Model
 pivotY =
     Helper.pivotY
+
+
+{-| TODO: Doc
+-}
+crop : Model -> { width : Int, height : Int } -> Model
+crop =
+    Helper.crop
 
 
 {-| TODO: Doc
