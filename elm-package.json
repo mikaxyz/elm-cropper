@@ -4,7 +4,7 @@
     "repository": "https://github.com/mikaxyz/elm-image-crop.git",
     "license": "ISC",
     "source-directories": [
-        "examples/js",
+        "examples",
         "src"
     ],
     "exposed-modules": ["Cropper"],
