@@ -1,7 +1,7 @@
 {
     "version": "1.0.0",
     "summary": "Fluid width image cropper UI",
-    "repository": "https://github.com/mikaxyz/elm-image-crop.git",
+    "repository": "https://github.com/mikajauhonen/elm-cropper.git",
     "license": "ISC",
     "source-directories": [
         "examples",
