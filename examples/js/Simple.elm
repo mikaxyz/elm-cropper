@@ -82,7 +82,9 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div []
-        [ Cropper.view model.cropper |> Html.map ToCropper
+        [ sourceInfoItems model.cropper
+        , Cropper.view model.cropper |> Html.map ToCropper
+        , cropInfoItems model.cropper
         , div [ class "controls" ]
             [ p [ class "controls__row" ]
                 [ label [] [ text "Z" ]
@@ -106,3 +108,27 @@ showRound d value =
             (round (value * toFloat (10 ^ d))) % (10 ^ d)
     in
         toString (floor value) ++ "." ++ (String.padLeft d '0' <| toString f)
+
+
+sourceInfoItems : Cropper.Model -> Html Msg
+sourceInfoItems model =
+    case (model.image) of
+        Nothing ->
+            div [ class "info-bar" ] []
+
+        Just image ->
+            div [ class "info-bar", style [ ( "max-width", toString model.crop.width ++ "px" ) ] ]
+                [ span [] [ "W: " ++ toString image.width |> text ]
+                , span [] [ "H: " ++ toString image.height |> text ]
+                , span [ class "fill" ] [ "SRC: " ++ image.src |> text ]
+                ]
+
+
+cropInfoItems : Cropper.Model -> Html Msg
+cropInfoItems model =
+    div [ class "info-bar", style [ ( "max-width", toString model.crop.width ++ "px" ) ] ]
+        [ span [] [ "W: " ++ showRound 2 (Cropper.imageSize model).x |> text ]
+        , span [] [ "H: " ++ showRound 2 (Cropper.imageSize model).y |> text ]
+        , span [] [ "X: " ++ toString (floor (Cropper.cropOrigin model).x) |> text ]
+        , span [] [ "Y: " ++ toString (floor (Cropper.cropOrigin model).y) |> text ]
+        ]

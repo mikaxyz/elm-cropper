@@ -9,6 +9,8 @@ module Cropper
         , zoom
         , pivotX
         , pivotY
+        , imageSize
+        , cropOrigin
         )
 
 {-| Elm Cropper
@@ -20,7 +22,7 @@ module Cropper
 @docs Model, Msg
 
 # Helpers
-@docs init, zoom, pivotX, pivotY
+@docs init, zoom, pivotX, pivotY, imageSize, cropOrigin
 -}
 
 import Html exposing (..)
@@ -86,6 +88,30 @@ pivotY =
     Helper.pivotY
 
 
+{-| TODO: Doc
+-}
+imageSize : Model -> Vector
+imageSize model =
+    case model.image of
+        Nothing ->
+            Vector 0 0
+
+        Just image ->
+            Helper.imageSize { image = image, crop = model.crop, zoom = model.zoom }
+
+
+{-| TODO: Doc
+-}
+cropOrigin : Model -> Vector
+cropOrigin model =
+    case model.image of
+        Nothing ->
+            Vector 0 0
+
+        Just image ->
+            Helper.cropOrigin { image = image, crop = model.crop, pivot = model.pivot, zoom = model.zoom }
+
+
 
 -- SUBSCRIPTIONS
 
@@ -96,7 +122,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     case model.drag of
         Nothing ->
-    Sub.none
+            Sub.none
 
         Just _ ->
             Sub.batch [ Mouse.moves DragAt, Mouse.ups DragEnd ]
