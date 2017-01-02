@@ -14,16 +14,16 @@ module Cropper
         , cropOrigin
         )
 
-{-| Elm Cropper
+{-| Fluid width/responsive image cropper UI
 
-# Tea
-@docs view, update, subscriptions
+# TEA
+@docs init, view, update, subscriptions
 
-# Types
+## Types
 @docs Model, Msg
 
 # Helpers
-@docs init, zoom, pivotX, pivotY, crop, imageSize, cropOrigin
+@docs zoom, pivotX, pivotY, crop, imageSize, cropOrigin
 -}
 
 import Html exposing (..)
@@ -34,26 +34,26 @@ import DOM
 import Mouse exposing (Position)
 
 
-{-| TODO: Doc
+{-| State of the cropper
 -}
 type alias Model =
     Types.Model
 
 
-{-| TODO: Doc
+{-| Messages
 -}
 type alias Msg =
     Types.Msg
 
 
-{-| TODO: Doc
+{-| TEA View
 -}
 view : Model -> Html Msg
 view =
     View.view
 
 
-{-| TODO: Doc
+{-| Use this function to initialize the module with url to image and a crop size.
 -}
 init : { url : String, crop : { width : Int, height : Int } } -> Model
 init { url, crop } =
@@ -67,35 +67,35 @@ init { url, crop } =
     }
 
 
-{-| TODO: Doc
+{-| Set zoom (clamped to 0.0...1.0)
 -}
 zoom : Model -> Float -> Model
 zoom =
     Helper.zoom
 
 
-{-| TODO: Doc
+{-| Set horizontal pivot (clamped to 0.0...1.0)
 -}
 pivotX : Model -> Float -> Model
 pivotX =
     Helper.pivotX
 
 
-{-| TODO: Doc
+{-| Set vertical pivot (clamped to 0.0...1.0)
 -}
 pivotY : Model -> Float -> Model
 pivotY =
     Helper.pivotY
 
 
-{-| TODO: Doc
+{-| Set crop size. Will be limited to image size.
 -}
 crop : Model -> { width : Int, height : Int } -> Model
 crop =
     Helper.crop
 
 
-{-| TODO: Doc
+{-| Get image size
 -}
 imageSize : Model -> Vector
 imageSize model =
@@ -107,7 +107,7 @@ imageSize model =
             Helper.imageSize { image = image, crop = model.crop, zoom = model.zoom }
 
 
-{-| TODO: Doc
+{-| Get starting point of crop area over imageSize
 -}
 cropOrigin : Model -> Vector
 cropOrigin model =
@@ -123,7 +123,7 @@ cropOrigin model =
 -- SUBSCRIPTIONS
 
 
-{-| TODO: Doc
+{-| TEA subscriptions needs to be hooked up for mouse dragging
 -}
 subscriptions : Model -> Sub Msg
 subscriptions model =
@@ -139,7 +139,7 @@ subscriptions model =
 -- UPDATE
 
 
-{-| TODO: Doc
+{-| TEA update function
 -}
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -165,7 +165,3 @@ update msg model =
                     (Maybe.map (\{ start } -> Drag start xy) model.drag)
             in
                 ( { model | drag = drag }, Cmd.none )
-
-
-
--- VIEW

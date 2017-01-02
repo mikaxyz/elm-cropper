@@ -4,11 +4,9 @@ import Cropper.Types as Types exposing (..)
 import Mouse exposing (Position)
 
 
-{-| TODO: Doc
--}
 zoom : Model -> Float -> Model
 zoom model zoom =
-    { model | zoom = zoom }
+    { model | zoom = Basics.clamp 0.0 1.0 zoom }
 
 
 pivot : Model -> { x : Float, y : Float } -> Model
@@ -22,15 +20,11 @@ pivot model pivot =
         { model | pivot = c }
 
 
-{-| TODO: Doc
--}
 pivotX : Model -> Float -> Model
 pivotX model x =
     pivot model { x = x, y = model.pivot.y }
 
 
-{-| TODO: Doc
--}
 pivotY : Model -> Float -> Model
 pivotY model y =
     pivot model { x = model.pivot.x, y = y }
