@@ -1,86 +1,10 @@
-port module Main exposing (..)
+module Main exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick)
-import ImageCropper as Cropper
-
-
--- PORTS
-
-
-type alias ImageData =
-    { url : String
-    , crop :
-        { width : Int
-        , height : Int
-        }
-    }
-
-
-port cropperWithImage : (ImageData -> msg) -> Sub msg
-
-
-type alias CropData =
-    { url : String
-    , size :
-        { width : Int
-        , height : Int
-        }
-    , crop :
-        { width : Int
-        , height : Int
-        }
-    , resized :
-        { width : Int
-        , height : Int
-        }
-    , origin :
-        { x : Int
-        , y : Int
-        }
-    }
-
-
-createCropData : Model -> CropData
-createCropData model =
-    case (Cropper.getImageData model.cropperModel) of
-        Nothing ->
-            CropData "" { width = 0, height = 0 } { width = 0, height = 0 } { width = 0, height = 0 } { x = 0, y = 0 }
-
-        Just image ->
-            let
-                size =
-                    Cropper.imageSize model.cropperModel
-
-                origin =
-                    Cropper.cropOrigin model.cropperModel
-            in
-                { url = image.imageUrl
-                , size =
-                    { width = image.naturalSize.width
-                    , height = image.naturalSize.height
-                    }
-                , crop =
-                    { width = image.crop.width
-                    , height = image.crop.height
-                    }
-                , resized =
-                    { width = round size.x
-                    , height = round size.y
-                    }
-                , origin =
-                    { x = round origin.x
-                    , y = round origin.y
-                    }
-                }
-
-
-port imageCropped : CropData -> Cmd msg
-
-
-
---port imageCropped : Model -> Cmd msg
+import Cropper
+import Ports
 
 
 main : Program Never Model Msg
@@ -93,168 +17,131 @@ main =
         }
 
 
+init : ( Model, Cmd Msg )
+init =
+    ( { cropper =
+            Cropper.init
+                { url = "/assets/kittens-1280x711.jpg"
+                , crop = { width = 720, height = 480 }
+                }
+      }
+    , Cmd.none
+    )
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.batch
+        [ Sub.map ToCropper (Cropper.subscriptions model.cropper)
+        , Ports.initWithImage CropImage
+        ]
+
+
+type Msg
+    = ToCropper Cropper.Msg
+    | Zoom String
+    | PivotX String
+    | PivotY String
+    | CropImage { url : String, crop : { width : Int, height : Int } }
+    | Crop { width : Int, height : Int }
+    | ExportImage
+
+
 
 -- MODEL
 
 
 type alias Model =
-    { cropperModel : Cropper.Model
+    { cropper : Cropper.Model
     }
-
-
-initialModel : Model
-initialModel =
-    { cropperModel = Cropper.initialModel
-    }
-
-
-init : ( Model, Cmd Msg )
-init =
-    ( initialModel, Cmd.none )
 
 
 
 -- UPDATE
 
 
-type Msg
-    = Zoom String
-    | ExportImage
-    | SetImageData ImageData
-    | PivotX String
-    | PivotY String
-    | CropperMsg Cropper.Msg
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ExportImage ->
-            ( model, imageCropped (createCropData model) )
-
-        SetImageData data ->
-            update (CropperMsg <| (Cropper.SetImage data)) model
-
-        Zoom zoom ->
-            update (CropperMsg <| Cropper.SetZoom (Result.withDefault 0 (String.toFloat zoom))) model
-
-        PivotX x ->
-            update (CropperMsg <| Cropper.SetPivotX (Result.withDefault 0 (String.toFloat x))) model
-
-        PivotY y ->
-            update (CropperMsg <| Cropper.SetPivotY (Result.withDefault 0 (String.toFloat y))) model
-
-        CropperMsg subMsg ->
+        ToCropper subMsg ->
             let
                 ( updatedSubModel, subCmd ) =
-                    Cropper.update subMsg model.cropperModel
+                    Cropper.update subMsg model.cropper
             in
-                ( { model | cropperModel = updatedSubModel }, Cmd.map CropperMsg subCmd )
+                ( { model | cropper = updatedSubModel }, Cmd.map ToCropper subCmd )
 
+        Zoom zoom ->
+            ( { model | cropper = Cropper.zoom model.cropper (Result.withDefault 0 (String.toFloat zoom)) }, Cmd.none )
 
+        PivotX x ->
+            ( { model | cropper = Cropper.pivotX model.cropper (Result.withDefault 0 (String.toFloat x)) }, Cmd.none )
 
--- SUBSCRIPTIONS
+        PivotY y ->
+            ( { model | cropper = Cropper.pivotY model.cropper (Result.withDefault 0 (String.toFloat y)) }, Cmd.none )
 
+        CropImage data ->
+            ( { model | cropper = Cropper.init data }, Cmd.none )
 
-subscriptions : Model -> Sub Msg
-subscriptions model =
-    Sub.batch
-        [ Sub.map CropperMsg (Cropper.subscriptions model.cropperModel)
-        , cropperWithImage SetImageData
-        ]
+        Crop crop ->
+            ( { model | cropper = Cropper.crop model.cropper crop }, Cmd.none )
+
+        ExportImage ->
+            ( model, Ports.cropData (Ports.createCropData model.cropper) )
 
 
 
 -- VIEW
 
 
-catImg : ImageData
-catImg =
-    { url = "/assets/kittens-1280x711.jpg"
-    , crop = { width = 820, height = 312 }
-    }
-
-
-testImg : ImageData
-testImg =
-    { url = "/assets/little-girl-1920-1280.jpg"
-    , crop = { width = 1080, height = 608 }
-    }
-
-
 view : Model -> Html Msg
 view model =
-    let
-        image =
-            Cropper.getImageData model.cropperModel
-
-        ifImage : Html Msg -> Html Msg
-        ifImage a =
-            if image == Nothing then
-                div [] []
-            else
-                a
-    in
-        div []
-            [ header []
-                [ h2 [] [ a [ href "/" ] [ text "Elm Image Crop Example" ] ]
-                , p []
-                    [ text "Here is an image of "
-                    , button [ onClick <| CropperMsg <| Cropper.SetImage catImg ] [ text "some cats." ]
-                    , text "If you do not like cats then "
-                    , button [ onClick <| CropperMsg <| Cropper.SetImage testImg ] [ text "try this instead." ]
-                    ]
-                , ifImage <| p [] [ text "You can use the sliders below to zoom or position the image. Also try dragging it." ]
-                , ifImage <|
-                    p []
-                        [ text "Here are other sizes to crop to:"
-                        , button [ onClick <| CropperMsg <| Cropper.CropTo { width = 240, height = 160 } ] [ text "240×160" ]
-                        , button [ onClick <| CropperMsg <| Cropper.CropTo { width = 640, height = 480 } ] [ text "640×480" ]
-                        , button [ onClick <| CropperMsg <| Cropper.CropTo { width = 820, height = 312 } ] [ text "820×312" ]
-                        , button [ onClick <| CropperMsg <| Cropper.CropTo { width = 1080, height = 608 } ] [ text "1080×608" ]
-                        ]
+    div []
+        [ header []
+            [ h2 [] [ a [ href "/" ] [ text "Elm Image Crop Example" ] ]
+            , p []
+                [ text "Here is an image of "
+                , strong [] [ text "some cats" ]
+                , text ". If you do not like cats then "
+                , button [ onClick <| CropImage { url = "/assets/little-girl-1920-1280.jpg", crop = { width = 1080, height = 608 } } ] [ text "try this instead." ]
                 ]
-            , sourceInfoItems model.cropperModel
-            , cropper model.cropperModel
-            , cropInfoItems model.cropperModel
-            , zoomWidget model
-            , ifImage <|
-                p []
-                    [ text "Following link sets up the cropper "
-                    , a [ href "/?s=/assets/test-1920x1200.png&w=320&h=240" ] [ text "from javascript" ]
-                    , text "."
-                    ]
-            , ifImage <|
-                p []
-                    [ text "Here is an "
-                    , a [ href "/?s=/assets/true-potus-611x640.jpg&w=900&h=900" ] [ text "image too small to be cropped" ]
-                    , text ". The crop size is set to image size. (This should be handled by caller)"
-                    ]
+            , p []
+                [ text "Here are other sizes to crop to:"
+                , button [ onClick <| Crop { width = 240, height = 160 } ] [ text "240×160" ]
+                , button [ onClick <| Crop { width = 640, height = 480 } ] [ text "640×480" ]
+                , button [ onClick <| Crop { width = 820, height = 312 } ] [ text "820×312" ]
+                , button [ onClick <| Crop { width = 1080, height = 608 } ] [ text "1080×608" ]
+                ]
+            , p [ class "info" ] [ span [] [ text "You can use the sliders below to zoom or position the image. Also try dragging it. Clicking \"Export\" sends the crop data to javascript where the cropped image is created using canvas..." ] ]
             ]
-
-
-cropper : Cropper.Model -> Html Msg
-cropper model =
-    case (Cropper.getImageData model) of
-        Nothing ->
-            div [ class "info-bar" ] [ text "Waiting for an image to crop..." ]
-
-        Just image ->
-            div [] [ Html.map CropperMsg <| Cropper.view model ]
-
-
-sourceInfoItems : Cropper.Model -> Html Msg
-sourceInfoItems model =
-    case (Cropper.getImageData model) of
-        Nothing ->
-            div [ class "info-bar" ] []
-
-        Just image ->
-            div [ class "info-bar", style [ ( "max-width", toString image.crop.width ++ "px" ) ] ]
-                [ span [] [ "W: " ++ toString image.naturalSize.width |> text ]
-                , span [] [ "H: " ++ toString image.naturalSize.height |> text ]
-                , span [ class "fill" ] [ "SRC: " ++ image.imageUrl |> text ]
+        , sourceInfoItems model.cropper
+        , Cropper.view model.cropper |> Html.map ToCropper
+        , cropInfoItems model.cropper
+        , div [ class "controls" ]
+            [ p [ class "controls__row" ]
+                [ label [] [ text "Z" ]
+                , input [ onInput Zoom, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString model.cropper.zoom) ] []
+                , span [] [ text <| showRound 4 model.cropper.zoom ]
                 ]
+            , p [ class "controls__row" ]
+                [ label [] [ text "X" ]
+                , input [ onInput PivotX, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString model.cropper.pivot.x) ] []
+                , label [] [ text "Y" ]
+                , input [ onInput PivotY, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString model.cropper.pivot.y) ] []
+                ]
+            , button [ class "controls__button", onClick <| ExportImage ] [ text "Crop" ]
+            ]
+        , p []
+            [ text "Following link sets up the cropper "
+            , a [ href "?s=/assets/test-1920x1200.png&w=320&h=240" ] [ text "from javascript" ]
+            , text "."
+            ]
+        , p [ class "info" ] [ span [] [ text "If an image is smaller than the crop size the cropper \"fails\" silently and the crop size is set to image size." ] ]
+        , p []
+            [ text "Here is an "
+            , a [ href "?s=/assets/true-potus-611x640.jpg&w=900&h=900" ] [ text "image too small to be cropped" ]
+            , text "."
+            ]
+        ]
 
 
 showRound : Int -> Float -> String
@@ -266,39 +153,25 @@ showRound d value =
         toString (floor value) ++ "." ++ (String.padLeft d '0' <| toString f)
 
 
-cropInfoItems : Cropper.Model -> Html Msg
-cropInfoItems model =
-    case (Cropper.getImageData model) of
+sourceInfoItems : Cropper.Model -> Html Msg
+sourceInfoItems model =
+    case (model.image) of
         Nothing ->
             div [ class "info-bar" ] []
 
         Just image ->
-            div [ class "info-bar", style [ ( "max-width", toString image.crop.width ++ "px" ) ] ]
-                [ span [] [ "W: " ++ showRound 2 (Cropper.imageSize model).x |> text ]
-                , span [] [ "H: " ++ showRound 2 (Cropper.imageSize model).y |> text ]
-                , span [] [ "X: " ++ toString (floor (Cropper.cropOrigin model).x) |> text ]
-                , span [] [ "Y: " ++ toString (floor (Cropper.cropOrigin model).y) |> text ]
+            div [ class "info-bar", style [ ( "max-width", toString model.crop.width ++ "px" ) ] ]
+                [ span [] [ "W: " ++ toString image.width |> text ]
+                , span [] [ "H: " ++ toString image.height |> text ]
+                , span [ class "fill" ] [ "SRC: " ++ image.src |> text ]
                 ]
 
 
-zoomWidget : Model -> Html Msg
-zoomWidget model =
-    case (Cropper.getImageData model.cropperModel) of
-        Nothing ->
-            div [ class "controls" ] []
-
-        Just image ->
-            div [ class "controls" ]
-                [ p [ class "controls__row" ]
-                    [ label [] [ text "Z" ]
-                    , input [ onInput Zoom, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString image.zoom) ] []
-                    , span [] [ text <| showRound 4 image.zoom ]
-                    ]
-                , p [ class "controls__row" ]
-                    [ label [] [ text "X" ]
-                    , input [ onInput PivotX, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString image.pivot.x) ] []
-                    , label [] [ text "Y" ]
-                    , input [ onInput PivotY, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString image.pivot.y) ] []
-                    ]
-                , button [ class "controls__button", onClick <| ExportImage ] [ text "Crop" ]
-                ]
+cropInfoItems : Cropper.Model -> Html Msg
+cropInfoItems model =
+    div [ class "info-bar", style [ ( "max-width", toString model.crop.width ++ "px" ) ] ]
+        [ span [] [ "W: " ++ showRound 2 (Cropper.imageSize model).x |> text ]
+        , span [] [ "H: " ++ showRound 2 (Cropper.imageSize model).y |> text ]
+        , span [] [ "X: " ++ toString (floor (Cropper.cropOrigin model).x) |> text ]
+        , span [] [ "Y: " ++ toString (floor (Cropper.cropOrigin model).y) |> text ]
+        ]

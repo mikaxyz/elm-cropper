@@ -20,7 +20,7 @@
 					}, {}) || {};
 
 	if (params.s && params.w && params.h) {
-		app.ports.cropperWithImage.send({
+		app.ports.initWithImage.send({
 			url: params.s,
 			crop: {
 				width: parseInt(params.w, 10),
@@ -29,7 +29,7 @@
 		});
 	}
 
-	app.ports.imageCropped.subscribe(function(data) {
+	app.ports.cropData.subscribe(function(data) {
 		var url = data.url;
 		var size = data.size;
 		var resized = data.resized;
