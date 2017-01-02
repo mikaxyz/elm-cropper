@@ -1,13 +1,23 @@
 module Cropper.Types exposing (..)
 
 import DOM
+import Mouse exposing (Position)
 import Json.Decode exposing (Decoder)
+
+
+type alias Drag =
+    { start : Position
+    , current : Position
+    }
 
 
 type Msg
     = ImageLoaded Image
     | Measure DOM.Rectangle
     | Zoom Float
+    | DragStart Position
+    | DragAt Position
+    | DragEnd Position
 
 
 type alias Model =
@@ -17,6 +27,7 @@ type alias Model =
     , boundingClientRect : DOM.Rectangle
     , pivot : Vector
     , zoom : Float
+    , drag : Maybe Drag
     }
 
 

@@ -29,6 +29,7 @@ import Cropper.Types as Types exposing (..)
 import Cropper.Helper as Helper exposing (..)
 import Cropper.View as View exposing (..)
 import DOM
+import Mouse exposing (Position)
 
 
 {-| TODO: Doc
@@ -60,6 +61,7 @@ init { url, crop } =
     , boundingClientRect = DOM.Rectangle 0 0 0 0
     , pivot = Vector 0.5 0.5
     , zoom = 0.0
+    , drag = Nothing
     }
 
 
@@ -92,7 +94,12 @@ pivotY =
 -}
 subscriptions : Model -> Sub Msg
 subscriptions model =
+    case model.drag of
+        Nothing ->
     Sub.none
+
+        Just _ ->
+            Sub.batch [ Mouse.moves DragAt, Mouse.ups DragEnd ]
 
 
 
@@ -112,6 +119,19 @@ update msg model =
 
         Zoom zoom ->
             ( { model | zoom = zoom }, Cmd.none )
+
+        DragStart xy ->
+            debugV "DragStart" xy ( { model | drag = (Just (Drag xy xy)) }, Cmd.none )
+
+        DragEnd xy ->
+            debugV "DragEnd" xy ( { model | pivot = getPivot model, drag = Nothing }, Cmd.none )
+
+        DragAt xy ->
+            let
+                drag =
+                    (Maybe.map (\{ start } -> Drag start xy) model.drag)
+            in
+                ( { model | drag = drag }, Cmd.none )
 
 
 

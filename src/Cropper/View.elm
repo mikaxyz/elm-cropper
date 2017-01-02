@@ -4,9 +4,10 @@ import Cropper.Types as Types exposing (..)
 import Cropper.Helper as Helper exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (src, class, style)
-import Html.Events exposing (on)
+import Html.Events exposing (on, onWithOptions)
 import Json.Decode exposing (Decoder)
 import DOM
+import Mouse exposing (Position)
 
 
 wrapperStyle : Rect -> Attribute Msg
@@ -81,9 +82,18 @@ imageStyle model =
 view : Model -> Html Msg
 view model =
     div [ class "elm-image-cropper", wrapperStyle model.crop ]
-        [ div [ class "elm-image-cropper__frame", boundingClientRect, cropperStyle model.crop ]
+        [ div [ class "elm-image-cropper__frame", boundingClientRect, startDrag, cropperStyle model.crop ]
             [ imageLoader model ]
         ]
+
+
+startDrag : Attribute Msg
+startDrag =
+    onWithOptions "mousedown"
+        { stopPropagation = True
+        , preventDefault = True
+        }
+        (Json.Decode.map DragStart Mouse.position)
 
 
 boundingClientRect : Attribute Msg

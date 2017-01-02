@@ -1,6 +1,7 @@
 module Cropper.Helper exposing (..)
 
 import Cropper.Types as Types exposing (..)
+import Mouse exposing (Position)
 
 
 {-| TODO: Doc
@@ -10,31 +11,86 @@ zoom model zoom =
     { model | zoom = zoom }
 
 
+pivot : Model -> { x : Float, y : Float } -> Model
+pivot model pivot =
+    let
+        c =
+            { x = Basics.clamp 0.0 1.0 pivot.x
+            , y = Basics.clamp 0.0 1.0 pivot.y
+            }
+    in
+        { model | pivot = c }
+
+
 {-| TODO: Doc
 -}
 pivotX : Model -> Float -> Model
 pivotX model x =
-    let
-        pivot =
-            model.pivot
-    in
-        { model | pivot = { pivot | x = Basics.clamp 0.0 1.0 x } }
+    pivot model { x = x, y = model.pivot.y }
 
 
 {-| TODO: Doc
 -}
 pivotY : Model -> Float -> Model
 pivotY model y =
-    let
-        pivot =
-            model.pivot
-    in
-        { model | pivot = { pivot | y = Basics.clamp 0.0 1.0 y } }
+    pivot model { x = model.pivot.x, y = y }
+
+
+dragDistance : Maybe Drag -> Position
+dragDistance drag =
+    case drag of
+        Just drag ->
+            Position (drag.start.x - drag.current.x) (drag.start.y - drag.current.y)
+
+        Nothing ->
+            Position 0 0
 
 
 getPivot : Model -> Vector
 getPivot model =
-    model.pivot
+    case model.image of
+        Nothing ->
+            model.pivot
+
+        Just image ->
+            case model.drag of
+                Nothing ->
+                    model.pivot
+
+                Just { start, current } ->
+                    let
+                        currentSize =
+                            imageSize
+                                { image = image
+                                , crop = model.crop
+                                , zoom = model.zoom
+                                }
+
+                        currentHeight =
+                            currentSize.y
+
+                        currentWidth =
+                            currentSize.x
+
+                        rangeX =
+                            (toFloat model.crop.width / (currentWidth - toFloat model.crop.width))
+
+                        rangeY =
+                            (toFloat model.crop.height / (currentHeight - toFloat model.crop.height))
+
+                        distance =
+                            dragDistance model.drag
+
+                        pivotX =
+                            (toFloat distance.x / model.boundingClientRect.width) * rangeX
+
+                        pivotY =
+                            (toFloat distance.y / model.boundingClientRect.height) * rangeY
+
+                        dragPivot =
+                            Vector pivotX pivotY
+                    in
+                        (pivot model { x = (model.pivot.x + dragPivot.x), y = (model.pivot.y + dragPivot.y) }).pivot
 
 
 imageRatio : { a | image : Image, crop : Rect } -> Vector
