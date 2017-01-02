@@ -146,7 +146,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ImageLoaded image ->
-            debugV "ImageLoaded" image ( { model | image = Just image }, Cmd.none )
+            debugV "ImageLoaded" image ( crop { model | image = Just image } model.crop, Cmd.none )
 
         Measure rect ->
             debugV "Measure" rect ( { model | boundingClientRect = rect }, Cmd.none )

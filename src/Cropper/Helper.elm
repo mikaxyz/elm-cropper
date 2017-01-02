@@ -38,7 +38,20 @@ pivotY model y =
 
 crop : Model -> { width : Int, height : Int } -> Model
 crop model crop =
-    { model | crop = crop }
+    case model.image of
+        Nothing ->
+            model
+
+        Just image ->
+            { model | crop = limitCrop crop image }
+
+
+limitCrop : Rect -> Image -> Rect
+limitCrop crop image =
+    if image.width >= crop.width && image.height >= crop.height then
+        crop
+    else
+        Rect image.width image.height
 
 
 dragDistance : Maybe Drag -> Position
