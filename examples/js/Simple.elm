@@ -4,6 +4,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick)
 import Cropper
+import Ports
 
 
 main : Program Never Model Msg
@@ -32,6 +33,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Sub.map ToCropper (Cropper.subscriptions model.cropper)
+        , Ports.initWithImage CropImage
         ]
 
 
@@ -42,6 +44,7 @@ type Msg
     | PivotY String
     | CropImage { url : String, crop : { width : Int, height : Int } }
     | Crop { width : Int, height : Int }
+    | ExportImage
 
 
 
@@ -82,6 +85,9 @@ update msg model =
         Crop crop ->
             ( { model | cropper = Cropper.crop model.cropper crop }, Cmd.none )
 
+        ExportImage ->
+            ( model, Ports.cropData (Ports.createCropData model.cropper) )
+
 
 
 -- VIEW
@@ -121,6 +127,17 @@ view model =
                 , label [] [ text "Y" ]
                 , input [ onInput PivotY, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString model.cropper.pivot.y) ] []
                 ]
+            , button [ class "controls__button", onClick <| ExportImage ] [ text "Crop" ]
+            ]
+        , p []
+            [ text "Following link sets up the cropper "
+            , a [ href "?s=/assets/test-1920x1200.png&w=320&h=240" ] [ text "from javascript" ]
+            , text "."
+            ]
+        , p []
+            [ text "Here is an "
+            , a [ href "?s=/assets/true-potus-611x640.jpg&w=900&h=900" ] [ text "image too small to be cropped" ]
+            , text ". The crop size is set to image size. (This should be handled by caller)"
             ]
         ]
 

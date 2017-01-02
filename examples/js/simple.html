@@ -3,13 +3,71 @@
 <head>
 	<meta charset="utf-8"/>
 	<title>Elm Image Crop</title>
-	<base href="/">
+	<base href="/simple.html">
 	<link rel="stylesheet" href="/style.css">
 </head>
 <body>
 <script src="/app.js"></script>
 <script>
-	Elm.Simple.fullscreen();
+	var app = Elm.Simple.fullscreen();
+
+	var params = window.location.search.substring(1)
+					.split("&")
+					.reduce(function(a, v) {
+						var s = v.split("=");
+						a[s[0]] = s[1];
+						return a;
+					}, {}) || {};
+
+	if (params.s && params.w && params.h) {
+		app.ports.initWithImage.send({
+			url: params.s,
+			crop: {
+				width: parseInt(params.w, 10),
+				height: parseInt(params.h, 10)
+			}
+		});
+	}
+
+	app.ports.cropData.subscribe(function(data) {
+		var url = data.url;
+		var size = data.size;
+		var resized = data.resized;
+		var origin = data.origin;
+		var crop = data.crop;
+
+		var canvas = document.createElement('canvas');
+		canvas.width = crop.width;
+		canvas.height = crop.height;
+		var context = canvas.getContext('2d');
+
+		var previewWindow = window.open();
+
+		var imageObj = new Image();
+		imageObj.crossOrigin = "Anonymous";
+		imageObj.src = url;
+
+		imageObj.onerror = function() {
+			alert("Image not available for cropping. Probably blocked by CORS policy.");
+		};
+
+		imageObj.onload = function() {
+			context.drawImage(
+					imageObj,
+					0,
+					0,
+					size.width,
+					size.height,
+					-origin.x,
+					-origin.y,
+					resized.width,
+					resized.height
+			);
+
+			var dataURL = canvas.toDataURL("image/jpeg", 1.0);
+			previewWindow.location = dataURL;
+		};
+	});
 </script>
 <footer>
 	<p>Available on <a href="http://package.elm-lang.org/packages/mikaxyz/elm-image-crop/latest">Elm packages</a> for Elm and <a href="https://www.npmjs.com/package/elm-image-crop">NPM</a> for JS/Angular. Report issues on <a href="https://github.com/mikajauhonen/elm-image-crop">Github</a>.</p>
