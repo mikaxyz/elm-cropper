@@ -10,6 +10,7 @@ module Cropper
         , pivotX
         , pivotY
         , crop
+        , cropData
         , imageSize
         , cropOrigin
         )
@@ -23,7 +24,12 @@ module Cropper
 @docs Model, Msg
 
 # Helpers
-@docs zoom, pivotX, pivotY, crop, imageSize, cropOrigin
+
+## Getters
+@docs cropData, imageSize, cropOrigin
+
+## Setters
+@docs zoom, pivotX, pivotY, crop
 -}
 
 import Html exposing (..)
@@ -117,6 +123,13 @@ cropOrigin model =
 
         Just image ->
             Helper.cropOrigin { image = image, crop = model.crop, pivot = model.pivot, zoom = model.zoom }
+
+
+{-| Get all data required (by CanvasRenderingContext2D.drawImage) to crop the image
+-}
+cropData : Model -> CropData
+cropData =
+    Helper.cropData
 
 
 

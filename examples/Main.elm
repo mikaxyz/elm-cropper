@@ -86,7 +86,7 @@ update msg model =
             ( { model | cropper = Cropper.crop model.cropper crop }, Cmd.none )
 
         ExportImage ->
-            ( model, Ports.cropperData (Ports.createCropData model.cropper) )
+            ( model, Ports.cropperData (Cropper.cropData model.cropper) )
 
 
 

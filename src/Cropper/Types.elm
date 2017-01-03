@@ -56,3 +56,24 @@ decodeImage =
         (Json.Decode.at [ "target", "src" ] Json.Decode.string)
         (Json.Decode.at [ "target", "width" ] Json.Decode.int)
         (Json.Decode.at [ "target", "height" ] Json.Decode.int)
+
+
+type alias Point =
+    { x : Int
+    , y : Int
+    }
+
+
+type alias ImageData =
+    { url : String
+    , crop : Rect
+    }
+
+
+type alias CropData =
+    { url : String
+    , size : Rect
+    , crop : Rect
+    , resized : Rect
+    , origin : Point
+    }

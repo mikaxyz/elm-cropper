@@ -149,3 +149,39 @@ cropOrigin { crop, pivot, zoom, image } =
             pivot.y * (size.y - toFloat crop.height)
     in
         Vector x y
+
+
+cropData : Model -> CropData
+cropData model =
+    case (model.image) of
+        Nothing ->
+            { url = model.url
+            , size = Rect 0 0
+            , crop = model.crop
+            , resized = Rect 0 0
+            , origin = Point 0 0
+            }
+
+        Just image ->
+            let
+                size =
+                    imageSize { crop = model.crop, zoom = model.zoom, image = image }
+
+                origin =
+                    cropOrigin { crop = model.crop, pivot = model.pivot, zoom = model.zoom, image = image }
+            in
+                { url = image.src
+                , size =
+                    { width = image.width
+                    , height = image.height
+                    }
+                , crop = model.crop
+                , resized =
+                    { width = round size.x
+                    , height = round size.y
+                    }
+                , origin =
+                    { x = round origin.x
+                    , y = round origin.y
+                    }
+                }
