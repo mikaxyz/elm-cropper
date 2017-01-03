@@ -1,45 +1,63 @@
-module Test.Image.Util exposing (..)
+module Test.Cropper.Helper exposing (..)
 
 import Test exposing (..)
 import Expect
 import Fuzz exposing (list, int, tuple, string)
 import String
-import Image.Types
-import Image.Util exposing (..)
+import DOM
+import Cropper.Types exposing (Rect, Vector)
+import Cropper exposing (..)
+
+
+mock : { crop : Rect, imageSize : Rect } -> Model
+mock { crop, imageSize } =
+    { url = "testing.jpg"
+    , crop = crop
+    , image =
+        Just
+            { src = "testing.jpg"
+            , width = imageSize.width
+            , height = imageSize.height
+            }
+    , boundingClientRect = DOM.Rectangle 0 0 0 0
+    , pivot = Vector 0.5 0.5
+    , zoom = 0.0
+    , drag = Nothing
+    }
 
 
 all : Test
 all =
-    describe "ImageCropper module"
+    describe "Cropper module"
         [ Test.concat
-            [ imageSize
-            , cropOrigin
+            [ imageSizeTest
+            , cropOriginTest
             ]
         ]
 
 
-cropOrigin : Test
-cropOrigin =
+cropOriginTest : Test
+cropOriginTest =
     let
-        model : Image.Types.Image
+        model : Model
         model =
-            { initialModel
-                | crop =
+            mock
+                { crop =
                     { width = 100
                     , height = 100
                     }
-                , naturalSize =
+                , imageSize =
                     { width = 200
                     , height = 200
                     }
-            }
+                }
     in
         describe "cropOrigin"
             -- TOP LEFT
             [ test "top left pivot at min zoom" <|
                 \() ->
                     Expect.equal
-                        (Image.Util.cropOrigin
+                        (cropOrigin
                             { model
                                 | zoom = 0.0
                                 , pivot =
@@ -52,7 +70,7 @@ cropOrigin =
             , test "top left pivot at mid zoom" <|
                 \() ->
                     Expect.equal
-                        (Image.Util.cropOrigin
+                        (cropOrigin
                             { model
                                 | zoom = 0.5
                                 , pivot =
@@ -65,7 +83,7 @@ cropOrigin =
             , test "top left pivot at max zoom" <|
                 \() ->
                     Expect.equal
-                        (Image.Util.cropOrigin
+                        (cropOrigin
                             { model
                                 | zoom = 1.0
                                 , pivot =
@@ -79,7 +97,7 @@ cropOrigin =
             , test "center pivot at min zoom" <|
                 \() ->
                     Expect.equal
-                        (Image.Util.cropOrigin
+                        (cropOrigin
                             { model
                                 | zoom = 0.0
                                 , pivot =
@@ -92,7 +110,7 @@ cropOrigin =
             , test "center pivot at mid zoom" <|
                 \() ->
                     Expect.equal
-                        (Image.Util.cropOrigin
+                        (cropOrigin
                             { model
                                 | zoom = 0.5
                                 , pivot =
@@ -105,7 +123,7 @@ cropOrigin =
             , test "center pivot at max zoom" <|
                 \() ->
                     Expect.equal
-                        (Image.Util.cropOrigin
+                        (cropOrigin
                             { model
                                 | zoom = 1.0
                                 , pivot =
@@ -119,7 +137,7 @@ cropOrigin =
             , test "bottom right pivot at min zoom" <|
                 \() ->
                     Expect.equal
-                        (Image.Util.cropOrigin
+                        (cropOrigin
                             { model
                                 | zoom = 0.0
                                 , pivot =
@@ -132,7 +150,7 @@ cropOrigin =
             , test "bottom right pivot at mid zoom" <|
                 \() ->
                     Expect.equal
-                        (Image.Util.cropOrigin
+                        (cropOrigin
                             { model
                                 | zoom = 0.5
                                 , pivot =
@@ -145,7 +163,7 @@ cropOrigin =
             , test "bottom right pivot at max zoom" <|
                 \() ->
                     Expect.equal
-                        (Image.Util.cropOrigin
+                        (cropOrigin
                             { model
                                 | zoom = 1.0
                                 , pivot =
@@ -158,28 +176,27 @@ cropOrigin =
             ]
 
 
-imageSize : Test
-imageSize =
+imageSizeTest : Test
+imageSizeTest =
     let
-        model : Image.Types.Image
+        model : Model
         model =
-            { initialModel
-                | zoom = 1.0
-                , crop =
+            mock
+                { crop =
                     { width = 800
                     , height = 300
                     }
-                , naturalSize =
+                , imageSize =
                     { width = 1600
                     , height = 1200
                     }
-            }
+                }
     in
         describe "imageSize"
             [ test "landscape image size at min zoom" <|
                 \() ->
                     Expect.equal
-                        (Image.Util.imageSize
+                        (imageSize
                             { model
                                 | zoom = 0.0
                             }
@@ -188,7 +205,7 @@ imageSize =
             , test "landscape image size at medium zoom" <|
                 \() ->
                     Expect.equal
-                        (Image.Util.imageSize
+                        (imageSize
                             { model
                                 | zoom = 0.5
                             }
@@ -197,7 +214,7 @@ imageSize =
             , test "landscape image size at max zoom" <|
                 \() ->
                     Expect.equal
-                        (Image.Util.imageSize
+                        (imageSize
                             { model
                                 | zoom = 1.0
                             }
@@ -206,7 +223,7 @@ imageSize =
             , test "portrait image size at min zoom" <|
                 \() ->
                     Expect.equal
-                        (Image.Util.imageSize
+                        (imageSize
                             { model
                                 | zoom = 0.0
                                 , crop =
@@ -219,7 +236,7 @@ imageSize =
             , test "portrait image size at mid zoom" <|
                 \() ->
                     Expect.equal
-                        (Image.Util.imageSize
+                        (imageSize
                             { model
                                 | zoom = 0.5
                                 , crop =
@@ -232,7 +249,7 @@ imageSize =
             , test "portrait image size at max zoom" <|
                 \() ->
                     Expect.equal
-                        (Image.Util.imageSize
+                        (imageSize
                             { model
                                 | zoom = 1.0
                                 , crop =
@@ -245,7 +262,7 @@ imageSize =
             , test "crop square at min zoom" <|
                 \() ->
                     Expect.equal
-                        (Image.Util.imageSize
+                        (imageSize
                             { model
                                 | zoom = 0.0
                                 , crop =
@@ -258,7 +275,7 @@ imageSize =
             , test "crop square at mid zoom" <|
                 \() ->
                     Expect.equal
-                        (Image.Util.imageSize
+                        (imageSize
                             { model
                                 | zoom = 0.5
                                 , crop =
@@ -271,7 +288,7 @@ imageSize =
             , test "crop square at max zoom" <|
                 \() ->
                     Expect.equal
-                        (Image.Util.imageSize
+                        (imageSize
                             { model
                                 | zoom = 1.0
                                 , crop =
