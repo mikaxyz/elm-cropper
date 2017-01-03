@@ -4,7 +4,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick)
 import Cropper
-import Ports
+import Cropper.Ports as Ports
 
 
 main : Program Never Model Msg
@@ -33,7 +33,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Sub.map ToCropper (Cropper.subscriptions model.cropper)
-        , Ports.initWithImage CropImage
+        , Ports.cropperWithImage CropImage
         ]
 
 
@@ -86,7 +86,7 @@ update msg model =
             ( { model | cropper = Cropper.crop model.cropper crop }, Cmd.none )
 
         ExportImage ->
-            ( model, Ports.cropData (Ports.createCropData model.cropper) )
+            ( model, Ports.cropperData (Ports.createCropData model.cropper) )
 
 
 

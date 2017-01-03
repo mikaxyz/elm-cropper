@@ -1,6 +1,18 @@
-port module Ports exposing (..)
+port module Cropper.Ports exposing (createCropData, cropperWithImage, cropperData)
 
-import Cropper
+{-| Ports for Elm Cropper
+@docs createCropData
+@docs cropperWithImage, cropperData
+-}
+
+import Cropper.Types exposing (..)
+import Cropper exposing (..)
+
+
+port cropperWithImage : (ImageData -> msg) -> Sub msg
+
+
+port cropperData : CropData -> Cmd msg
 
 
 type alias Point =
@@ -9,19 +21,10 @@ type alias Point =
     }
 
 
-type alias Rect =
-    { width : Int
-    , height : Int
-    }
-
-
 type alias ImageData =
     { url : String
     , crop : Rect
     }
-
-
-port initWithImage : (ImageData -> msg) -> Sub msg
 
 
 type alias CropData =
@@ -33,9 +36,8 @@ type alias CropData =
     }
 
 
-port cropData : CropData -> Cmd msg
-
-
+{-| Get crop data
+-}
 createCropData : Cropper.Model -> CropData
 createCropData model =
     case (model.image) of
@@ -45,10 +47,10 @@ createCropData model =
         Just image ->
             let
                 size =
-                    Cropper.imageSize model
+                    imageSize model
 
                 origin =
-                    Cropper.cropOrigin model
+                    cropOrigin model
             in
                 { url = image.src
                 , size =
