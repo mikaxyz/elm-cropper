@@ -21,7 +21,7 @@ init : ( Model, Cmd Msg )
 init =
     ( { cropper =
             Cropper.init
-                { url = "/assets/kittens-1280x711.jpg"
+                { url = "assets/kittens-1280x711.jpg"
                 , crop = { width = 720, height = 480 }
                 }
       }
@@ -97,12 +97,12 @@ view : Model -> Html Msg
 view model =
     div []
         [ header []
-            [ h2 [] [ a [ href "/" ] [ text "Elm Cropper Example" ] ]
+            [ h2 [] [ a [ href "index.html" ] [ text "Elm Cropper Example" ] ]
             , p []
                 [ text "Here is an image of "
                 , strong [] [ text "some cats" ]
                 , text ". If you do not like cats then "
-                , button [ onClick <| CropImage { url = "/assets/little-girl-1920-1280.jpg", crop = { width = 1080, height = 608 } } ] [ text "try this instead." ]
+                , button [ onClick <| CropImage { url = "assets/little-girl-1920-1280.jpg", crop = { width = 1080, height = 608 } } ] [ text "try this instead." ]
                 ]
             , p []
                 [ text "Here are other sizes to crop to:"
@@ -132,13 +132,13 @@ view model =
             ]
         , p []
             [ text "Following link sets up the cropper "
-            , a [ href "?s=/assets/test-1920x1200.png&w=320&h=240" ] [ text "from javascript" ]
+            , a [ href "?s=assets/test-1920x1200.png&w=320&h=240" ] [ text "from javascript" ]
             , text "."
             ]
         , p [ class "info" ] [ span [] [ text "If an image is smaller than the crop size the cropper \"fails\" silently and the crop size is set to image size." ] ]
         , p []
             [ text "Here is an "
-            , a [ href "?s=/assets/true-potus-611x640.jpg&w=900&h=900" ] [ text "image too small to be cropped" ]
+            , a [ href "?s=assets/true-potus-611x640.jpg&w=900&h=900" ] [ text "image too small to be cropped" ]
             , text "."
             ]
         ]

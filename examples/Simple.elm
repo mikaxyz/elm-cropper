@@ -31,7 +31,7 @@ init : ( Model, Cmd Msg )
 init =
     ( { cropper =
             Cropper.init
-                { url = "/assets/kittens-1280x711.jpg"
+                { url = "assets/kittens-1280x711.jpg"
                 , crop = { width = 720, height = 480 }
                 }
       , test = 42
