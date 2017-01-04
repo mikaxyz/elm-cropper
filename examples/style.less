@@ -7,7 +7,6 @@ body {
 	font-size: 1.6rem;
 	line-height: 30/16;
 	color: @color__eigengrau;
-	text-align: center;
 	-webkit-font-smoothing: antialiased;
 	text-rendering: optimizelegibility;
 	-moz-osx-font-smoothing: grayscale;
@@ -20,6 +19,35 @@ p {
 
 a {
 	color: inherit;
+}
+
+.info {
+	background-color: tint(yellow, 60%);
+	font-size: 1.1rem;
+	line-height: 20/11;
+
+	display: flex;
+	align-content: center;
+
+	&:before {
+		content: "i";
+		font-family: Serif;
+		font-weight: bold;
+		background-color: darken(yellow, 2%);
+		padding: 0.5em 1em;
+	}
+
+	span {
+		padding: 0.5em 1em 1em 1em;
+	}
+}
+
+.code {
+	font-size: 1rem;
+	padding: 1rem;
+	display: block;
+	background-color: tint(slategray, 90%);
+	color: darkslategray;
 }
 
 header {
@@ -82,6 +110,7 @@ button {
 }
 
 .controls {
+	margin-top: 1em;
 	margin-bottom: 1em;
 
 	label {
@@ -102,7 +131,9 @@ button {
 		white-space:nowrap;
 	}
 	&__button {
+		display: block;
 		font-size: 2em;
+		margin: 0.5em auto 1em auto;
 	}
 }
 
@@ -181,6 +212,7 @@ footer {
 	background-color: @color__eigengrau;
 	color: white;
 	font-size: 13px;
+	text-align: center;
 	position: fixed;
 	left: 0;
 	right: 0;

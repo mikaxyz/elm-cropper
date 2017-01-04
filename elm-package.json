@@ -1,13 +1,13 @@
 {
     "version": "1.0.0",
-    "summary": "Fluid width image cropper UI",
-    "repository": "https://github.com/mikaxyz/elm-image-crop.git",
+    "summary": "Fluid width/responsive image cropper UI",
+    "repository": "https://github.com/mikaxyz/elm-cropper.git",
     "license": "ISC",
     "source-directories": [
-        "examples/js",
+        "examples",
         "src"
     ],
-    "exposed-modules": [],
+    "exposed-modules": ["Cropper", "Cropper.Ports"],
     "dependencies": {
         "debois/elm-dom": "1.2.3 <= v < 2.0.0",
         "elm-lang/core": "5.0.0 <= v < 6.0.0",

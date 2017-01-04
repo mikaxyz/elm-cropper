@@ -7,6 +7,11 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 indent_style = tab
 
+# 2 space indentation
+[package.json]
+indent_style = space
+indent_size = 2
+
 # 4 space indentation
 [{*.elm,elm-package.json}]
 indent_style = space
