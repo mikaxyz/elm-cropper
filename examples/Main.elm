@@ -1,10 +1,16 @@
-module Main exposing (..)
+port module Main exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick)
 import Cropper
-import Cropper.Ports as Ports
+import Cropper.Types exposing (ImageData, CropData)
+
+
+port cropperWithImage : (ImageData -> msg) -> Sub msg
+
+
+port cropperData : CropData -> Cmd msg
 
 
 main : Program Never Model Msg
@@ -33,7 +39,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Sub.map ToCropper (Cropper.subscriptions model.cropper)
-        , Ports.cropperWithImage CropImage
+        , cropperWithImage CropImage
         ]
 
 
@@ -86,7 +92,7 @@ update msg model =
             ( { model | cropper = Cropper.crop model.cropper crop }, Cmd.none )
 
         ExportImage ->
-            ( model, Ports.cropperData (Cropper.cropData model.cropper) )
+            ( model, cropperData (Cropper.cropData model.cropper) )
 
 
 
