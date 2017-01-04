@@ -5,12 +5,14 @@
   "description": "",
   "main": "index.html",
   "scripts": {
-    "test": "elm-test"
+    "test": "elm-test",
+    "build": "elm-make --yes ./examples/Main.elm ./examples/Simple.elm --output=./examples/app.js && lessc --compress ./examples/style.less ./examples/style.css"
   },
   "author": "me@mika.xyz",
   "license": "ISC",
   "devDependencies": {
     "elm": "^0.18.0",
-    "elm-test": "^0.18.2"
+    "elm-test": "^0.18.2",
+    "less": "^2.7.1"
   }
 }
