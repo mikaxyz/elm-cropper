@@ -2,6 +2,7 @@ module Cropper.Types exposing (..)
 
 import DOM
 import Mouse exposing (Position)
+import SingleTouch exposing (SingleTouch)
 import Json.Decode exposing (Decoder)
 
 
@@ -18,6 +19,9 @@ type Msg
     | DragStart Position
     | DragAt Position
     | DragEnd Position
+    | OnTouchStart SingleTouch
+    | OnTouchMove SingleTouch
+    | OnTouchEnd SingleTouch
 
 
 type alias Model =

@@ -178,3 +178,23 @@ update msg model =
                     (Maybe.map (\{ start } -> Drag start xy) model.drag)
             in
                 ( { model | drag = drag }, Cmd.none )
+
+        OnTouchStart touch ->
+            let
+                xy =
+                    Position (round touch.touch.clientX) (round touch.touch.clientY)
+            in
+                ( { model | drag = (Just (Drag xy xy)) }, Cmd.none )
+
+        OnTouchMove touch ->
+            let
+                xy =
+                    Position (round touch.touch.clientX) (round touch.touch.clientY)
+
+                drag =
+                    (Maybe.map (\{ start } -> Drag start xy) model.drag)
+            in
+                ( { model | drag = drag }, Cmd.none )
+
+        OnTouchEnd xy ->
+            ( { model | pivot = getPivot model, drag = Nothing }, Cmd.none )
