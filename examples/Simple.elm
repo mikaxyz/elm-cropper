@@ -62,7 +62,7 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div []
-        [ header [] [ h2 [] [ a [ href "simple.html" ] [ text "Elm Cropper Simple Example" ] ] ]
+        [ header [] [ h1 [] [ a [ href "simple.html" ] [ text "Elm Cropper Simple Example" ] ] ]
         , Cropper.view model.cropper |> Html.map ToCropper
         , div [ class "controls" ]
             [ p [ class "controls__row" ]
