@@ -8,6 +8,8 @@ import Html.Events exposing (on, onWithOptions)
 import Json.Decode exposing (Decoder)
 import DOM
 import Mouse exposing (Position)
+import Touch exposing (TouchEvent(..), Touch)
+import SingleTouch exposing (onSingleTouch)
 
 
 wrapperStyle : Rect -> Attribute Msg
@@ -82,23 +84,34 @@ imageStyle model =
 view : Model -> Html Msg
 view model =
     div [ class "elm-image-cropper", wrapperStyle model.crop ]
-        [ div [ class "elm-image-cropper__frame", boundingClientRect, startDrag, cropperStyle model.crop ]
-            [ imageLoader model ]
+        [ div ([ class "elm-image-cropper__frame", cropperStyle model.crop ] ++ onDrag)
+            [ div ([ cropperStyle model.crop ] ++ boundingClientRect)
+                [ imageLoader model ]
+            ]
         ]
 
 
-startDrag : Attribute Msg
-startDrag =
-    onWithOptions "mousedown"
-        { stopPropagation = True
-        , preventDefault = True
-        }
-        (Json.Decode.map DragStart Mouse.position)
+onDrag : List (Attribute Msg)
+onDrag =
+    [ onWithOptions "mousedown" Touch.preventAndStop <| (Json.Decode.map DragStart Mouse.position)
+    , onSingleTouch TouchStart Touch.preventAndStop <| OnTouchStart
+    , onSingleTouch TouchMove Touch.preventAndStop <| OnTouchMove
+    , onSingleTouch TouchEnd Touch.preventAndStop <| OnTouchEnd
+    , onSingleTouch TouchCancel Touch.preventAndStop <| OnTouchEnd
+    ]
 
 
-boundingClientRect : Attribute Msg
+boundingClientRect : List (Attribute Msg)
 boundingClientRect =
-    on "mouseenter" decodeBoundingClientRect
+    let
+        options =
+            { stopPropagation = False
+            , preventDefault = True
+            }
+    in
+        [ onWithOptions "mousedown" options decodeBoundingClientRect
+        , onWithOptions "touchstart" options decodeBoundingClientRect
+        ]
 
 
 decodeBoundingClientRect : Decoder Msg

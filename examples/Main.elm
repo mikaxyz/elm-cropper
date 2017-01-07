@@ -103,7 +103,7 @@ view : Model -> Html Msg
 view model =
     div []
         [ header []
-            [ h2 [] [ a [ href "index.html" ] [ text "Elm Cropper Example" ] ]
+            [ h1 [] [ a [ href "index.html" ] [ text "Elm Cropper Example" ] ]
             , p []
                 [ text "Here is an image of "
                 , strong [] [ text "some cats" ]
