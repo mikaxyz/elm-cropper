@@ -5,6 +5,8 @@ module Cropper
         , subscriptions
         , Model
         , Msg
+        , ImageData
+        , CropData
         , init
         , zoom
         , pivotX
@@ -21,7 +23,7 @@ module Cropper
 @docs init, view, update, subscriptions
 
 ## Types
-@docs Model, Msg
+@docs Model, Msg, ImageData, CropData
 
 # Helpers
 
@@ -50,6 +52,22 @@ type alias Model =
 -}
 type alias Msg =
     Types.Msg
+
+
+{-| Helper type intended for wrapping data from javascript via port
+Example:
+port cropperWithImage : (ImageData -> msg) -> Sub msg
+-}
+type alias ImageData =
+    Types.ImageData
+
+
+{-| Helper type intended for wrapping data sent to javascript via port
+Example:
+port cropperData : CropData -> Cmd msg
+-}
+type alias CropData =
+    Types.CropData
 
 
 {-| TEA View

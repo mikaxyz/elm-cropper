@@ -4,13 +4,12 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick)
 import Cropper
-import Cropper.Types exposing (ImageData, CropData)
 
 
-port cropperWithImage : (ImageData -> msg) -> Sub msg
+port cropperWithImage : (Cropper.ImageData -> msg) -> Sub msg
 
 
-port cropperData : CropData -> Cmd msg
+port cropperData : Cropper.CropData -> Cmd msg
 
 
 main : Program Never Model Msg
