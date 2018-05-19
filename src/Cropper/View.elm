@@ -20,6 +20,20 @@ wrapperStyle rect =
         , ( "-ms-user-select", "none" )
         , ( "user-select", "none" )
         , ( "max-width", toString rect.width ++ "px" )
+        , ( "position", "relative" )
+        ]
+
+
+cropperBackdropStyle : Rect -> Attribute Msg
+cropperBackdropStyle rect =
+    style
+        [ ( "padding-bottom", toString (100.0 * toFloat rect.height / toFloat rect.width) ++ "%" )
+        , ( "position", "relative" )
+        , ( "height", "0" )
+
+        --        , ( "overflow", "hidden" )
+        , ( "opacity", "0.3" )
+        , ( "max-width", "100%" )
         ]
 
 
@@ -27,10 +41,12 @@ cropperStyle : Rect -> Attribute Msg
 cropperStyle rect =
     style
         [ ( "padding-bottom", toString (100.0 * toFloat rect.height / toFloat rect.width) ++ "%" )
-        , ( "position", "relative" )
+        , ( "position", "absolute" )
         , ( "height", "0" )
         , ( "overflow", "hidden" )
         , ( "max-width", "100%" )
+        , ( "width", "100%" )
+        , ( "top", "0" )
         ]
 
 
@@ -84,7 +100,11 @@ imageStyle model =
 view : Model -> Html Msg
 view model =
     div [ class "elm-image-cropper", wrapperStyle model.crop ]
-        [ div ([ class "elm-image-cropper__frame", cropperStyle model.crop ] ++ onDrag)
+        [ div ([ class "elm-image-cropper__frame", cropperBackdropStyle model.crop ] ++ onDrag)
+            [ div ([ cropperBackdropStyle model.crop ] ++ boundingClientRect)
+                [ imageLoader model ]
+            ]
+        , div ([ class "elm-image-cropper__frame", cropperStyle model.crop ] ++ onDrag)
             [ div ([ cropperStyle model.crop ] ++ boundingClientRect)
                 [ imageLoader model ]
             ]
