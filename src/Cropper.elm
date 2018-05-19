@@ -19,19 +19,29 @@ module Cropper
 
 {-| Fluid width/responsive image cropper UI
 
+
 # TEA
+
 @docs init, view, update, subscriptions
 
+
 ## Types
+
 @docs Model, Msg, ImageData, CropData
+
 
 # Helpers
 
+
 ## Getters
+
 @docs cropData, imageSize, cropOrigin
 
+
 ## Setters
+
 @docs zoom, pivotX, pivotY, crop
+
 -}
 
 import Html exposing (..)
