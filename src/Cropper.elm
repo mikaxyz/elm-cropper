@@ -1,21 +1,9 @@
-module Cropper
-    exposing
-        ( view
-        , update
-        , subscriptions
-        , Model
-        , Msg
-        , ImageData
-        , CropData
-        , init
-        , zoom
-        , pivotX
-        , pivotY
-        , crop
-        , cropData
-        , imageSize
-        , cropOrigin
-        )
+module Cropper exposing
+    ( init, view, update, subscriptions
+    , Model, Msg, ImageData, CropData
+    , cropData, imageSize, cropOrigin
+    , zoom, pivotX, pivotY, crop
+    )
 
 {-| Fluid width/responsive image cropper UI
 
@@ -44,12 +32,18 @@ module Cropper
 
 -}
 
-import Html exposing (..)
-import Cropper.Types as Types exposing (..)
+import Browser.Dom
+import Browser.Events
 import Cropper.Helper as Helper exposing (..)
+import Cropper.Types as Types exposing (..)
 import Cropper.View as View exposing (..)
 import DOM
-import Mouse exposing (Position)
+import Html exposing (..)
+import Json.Decode
+
+
+
+--import Mouse exposing (Position)
 
 
 {-| State of the cropper
@@ -90,13 +84,13 @@ view =
 {-| Use this function to initialize the module with url to image and a crop size.
 -}
 init : { url : String, crop : { width : Int, height : Int } } -> Model
-init { url, crop } =
-    { url = url
-    , crop = crop
+init a_ =
+    { url = a_.url
+    , crop = a_.crop
     , image = Nothing
     , boundingClientRect = DOM.Rectangle 0 0 0 0
     , pivot = Vector 0.5 0.5
-    , zoom = 0.0
+    , zoom = 1.0
     , drag = Nothing
     }
 
@@ -105,7 +99,7 @@ init { url, crop } =
 -}
 zoom : Model -> Float -> Model
 zoom =
-    Helper.zoom
+    Helper.zoomImage
 
 
 {-| Set horizontal pivot (clamped to 0.0...1.0)
@@ -126,7 +120,7 @@ pivotY =
 -}
 crop : Model -> { width : Int, height : Int } -> Model
 crop =
-    Helper.crop
+    Helper.cropImage
 
 
 {-| Get image size
@@ -173,10 +167,33 @@ subscriptions model =
             Sub.none
 
         Just _ ->
-            Sub.batch [ Mouse.moves DragAt, Mouse.ups DragEnd ]
+            Sub.batch
+                [ Browser.Events.onMouseMove (Json.Decode.map2 (fromPoint DragAt) pageX pageY)
+                , Browser.Events.onMouseUp (Json.Decode.map2 (fromPoint DragEnd) pageX pageY)
+                ]
+
+
+fromPoint : (Point -> Msg) -> Int -> Int -> Msg
+fromPoint msg x y =
+    Point x y |> msg
+
+
+pageX : Json.Decode.Decoder Int
+pageX =
+    Json.Decode.field "pageX" Json.Decode.int
+
+
+pageY : Json.Decode.Decoder Int
+pageY =
+    Json.Decode.field "pageY" Json.Decode.int
 
 
 
+--decodeMouse : Json.Decode.Decoder Position
+--decodeMouse =
+--    Json.Decode.map2 Position
+--        (Json.Decode.at [ "offsetX" ] Json.Decode.int)
+--        (Json.Decode.at [ "offsetY" ] Json.Decode.int)
 -- UPDATE
 
 
@@ -191,38 +208,43 @@ update msg model =
         Measure rect ->
             ( { model | boundingClientRect = rect }, Cmd.none )
 
-        Zoom zoom ->
-            ( { model | zoom = zoom }, Cmd.none )
+        Zoom zoom_ ->
+            ( { model | zoom = zoom_ }, Cmd.none )
 
-        DragStart xy ->
-            ( { model | drag = (Just (Drag xy xy)) }, Cmd.none )
+        DragStart pos ->
+            ( { model | drag = Just (Drag pos pos) }, Cmd.none )
 
-        DragEnd xy ->
+        DragEnd _ ->
             ( { model | pivot = getPivot model, drag = Nothing }, Cmd.none )
 
-        DragAt xy ->
+        DragAt pagePos ->
             let
-                drag =
-                    (Maybe.map (\{ start } -> Drag start xy) model.drag)
-            in
-                ( { model | drag = drag }, Cmd.none )
-
-        OnTouchStart touch ->
-            let
-                xy =
-                    Position (round touch.touch.clientX) (round touch.touch.clientY)
-            in
-                ( { model | drag = (Just (Drag xy xy)) }, Cmd.none )
-
-        OnTouchMove touch ->
-            let
-                xy =
-                    Position (round touch.touch.clientX) (round touch.touch.clientY)
+                pos =
+                    { x = pagePos.x - round model.boundingClientRect.left
+                    , y = pagePos.y - round model.boundingClientRect.top
+                    }
 
                 drag =
-                    (Maybe.map (\{ start } -> Drag start xy) model.drag)
+                    Maybe.map (\{ start } -> Drag start pos) model.drag
             in
-                ( { model | drag = drag }, Cmd.none )
+            ( { model | drag = drag }, Cmd.none )
+
+        OnTouchStart ( x, y ) ->
+            let
+                pos =
+                    Position (round x) (round y)
+            in
+            ( { model | drag = Just (Drag pos pos) }, Cmd.none )
+
+        OnTouchMove ( x, y ) ->
+            let
+                xy =
+                    Position (round x) (round y)
+
+                drag =
+                    Maybe.map (\{ start } -> Drag start xy) model.drag
+            in
+            ( { model | drag = drag }, Cmd.none )
 
         OnTouchEnd xy ->
             ( { model | pivot = getPivot model, drag = Nothing }, Cmd.none )

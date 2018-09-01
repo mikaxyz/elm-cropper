@@ -1,44 +1,44 @@
-module Cropper.View exposing (..)
+module Cropper.View exposing (boundingClientRect, cropperStyle, decodeBoundingClientRect, imageLoader, imageOnLoad, imageStyle, onDrag, view, wrapperStyle)
 
-import Cropper.Types as Types exposing (..)
+import Browser.Dom
 import Cropper.Helper as Helper exposing (..)
-import Html exposing (..)
-import Html.Attributes exposing (src, class, style)
-import Html.Events exposing (on, onWithOptions)
-import Json.Decode exposing (Decoder)
+import Cropper.Types as Types exposing (..)
 import DOM
-import Mouse exposing (Position)
-import Touch exposing (TouchEvent(..), Touch)
-import SingleTouch exposing (onSingleTouch)
+import Html exposing (..)
+import Html.Attributes exposing (class, src, style)
+import Html.Events exposing (on, preventDefaultOn)
+import Html.Events.Extra.Mouse as Mouse
+import Html.Events.Extra.Touch as Touch
+import Json.Decode exposing (Decoder)
 
 
-wrapperStyle : Rect -> Attribute Msg
+wrapperStyle : Rect -> List (Attribute Msg)
 wrapperStyle rect =
-    style
-        [ ( "-webkit-user-select", "none" )
-        , ( "-moz-user-select", "none" )
-        , ( "-ms-user-select", "none" )
-        , ( "user-select", "none" )
-        , ( "max-width", toString rect.width ++ "px" )
-        ]
+    [ ( "-webkit-user-select", "none" )
+    , ( "-moz-user-select", "none" )
+    , ( "-ms-user-select", "none" )
+    , ( "user-select", "none" )
+    , ( "max-width", String.fromInt rect.width ++ "px" )
+    ]
+        |> List.map (\( a, b ) -> style a b)
 
 
-cropperStyle : Rect -> Attribute Msg
+cropperStyle : Rect -> List (Attribute Msg)
 cropperStyle rect =
-    style
-        [ ( "padding-bottom", toString (100.0 * toFloat rect.height / toFloat rect.width) ++ "%" )
-        , ( "position", "relative" )
-        , ( "height", "0" )
-        , ( "overflow", "hidden" )
-        , ( "max-width", "100%" )
-        ]
+    [ ( "padding-bottom", String.fromFloat (100.0 * toFloat rect.height / toFloat rect.width) ++ "%" )
+    , ( "position", "relative" )
+    , ( "height", "0" )
+    , ( "overflow", "hidden" )
+    , ( "max-width", "100%" )
+    ]
+        |> List.map (\( a, b ) -> style a b)
 
 
-imageStyle : Model -> Attribute Msg
+imageStyle : Model -> List (Attribute Msg)
 imageStyle model =
     case model.image of
         Nothing ->
-            style []
+            []
 
         Just image ->
             let
@@ -66,26 +66,26 @@ imageStyle model =
                 posY =
                     -(height - 100.0) * currentPivot.y
             in
-                style
-                    [ ( "position", "absolute" )
-                    , ( "min-width", "0" )
-                    , ( "max-width", "none" )
-                    , ( "display", "block" )
-                    , ( "pointer-events", "none" )
-                    , ( "width", toString width ++ "%" )
-                    , ( "height", toString height ++ "%" )
-                    , ( "left", toString posX ++ "%" )
-                    , ( "top", toString posY ++ "%" )
-                    ]
+            [ ( "position", "absolute" )
+            , ( "min-width", "0" )
+            , ( "max-width", "none" )
+            , ( "display", "block" )
+            , ( "pointer-events", "none" )
+            , ( "width", String.fromFloat width ++ "%" )
+            , ( "height", String.fromFloat height ++ "%" )
+            , ( "left", String.fromFloat posX ++ "%" )
+            , ( "top", String.fromFloat posY ++ "%" )
+            ]
+                |> List.map (\( a, b ) -> style a b)
 
 
 {-| TODO: Doc
 -}
 view : Model -> Html Msg
 view model =
-    div [ class "elm-image-cropper", wrapperStyle model.crop ]
-        [ div ([ class "elm-image-cropper__frame", cropperStyle model.crop ] ++ onDrag)
-            [ div ([ cropperStyle model.crop ] ++ boundingClientRect)
+    div (List.append [ class "elm-image-cropper" ] (wrapperStyle model.crop))
+        [ div (List.append (cropperStyle model.crop) ([ class "elm-image-cropper__frame" ] ++ onDrag))
+            [ div (cropperStyle model.crop ++ boundingClientRect)
                 [ imageLoader model ]
             ]
         ]
@@ -93,25 +93,36 @@ view model =
 
 onDrag : List (Attribute Msg)
 onDrag =
-    [ onWithOptions "mousedown" Touch.preventAndStop <| (Json.Decode.map DragStart Mouse.position)
-    , onSingleTouch TouchStart Touch.preventAndStop <| OnTouchStart
-    , onSingleTouch TouchMove Touch.preventAndStop <| OnTouchMove
-    , onSingleTouch TouchEnd Touch.preventAndStop <| OnTouchEnd
-    , onSingleTouch TouchCancel Touch.preventAndStop <| OnTouchEnd
+    [ Mouse.onDown
+        (\event ->
+            DragStart
+                { x = event.offsetPos |> Tuple.first |> round
+                , y = event.offsetPos |> Tuple.second |> round
+                }
+        )
+    , Touch.onStart (OnTouchStart << touchCoordinates)
+    , Touch.onMove (OnTouchMove << touchCoordinates)
+    , Touch.onEnd (OnTouchEnd << touchCoordinates)
     ]
+
+
+touchCoordinates : Touch.Event -> ( Float, Float )
+touchCoordinates touchEvent =
+    List.head touchEvent.changedTouches
+        |> Maybe.map .pagePos
+        |> Maybe.withDefault ( 0, 0 )
 
 
 boundingClientRect : List (Attribute Msg)
 boundingClientRect =
-    let
-        options =
-            { stopPropagation = False
-            , preventDefault = True
-            }
-    in
-        [ onWithOptions "mousedown" options decodeBoundingClientRect
-        , onWithOptions "touchstart" options decodeBoundingClientRect
-        ]
+    [ preventDefaultOn "mousedown" (Json.Decode.map alwaysPreventDefault decodeBoundingClientRect)
+    , preventDefaultOn "touchstart" (Json.Decode.map alwaysPreventDefault decodeBoundingClientRect)
+    ]
+
+
+alwaysPreventDefault : msg -> ( msg, Bool )
+alwaysPreventDefault msg =
+    ( msg, True )
 
 
 decodeBoundingClientRect : Decoder Msg
@@ -125,11 +136,11 @@ imageLoader model =
         Nothing ->
             div []
                 [ h4 [ class "elm-image-cropper__loading" ] [ text "Loading..." ]
-                , img [ style [ ( "display", "none" ) ], imageOnLoad, src model.url ] []
+                , img [ style "display" "none", imageOnLoad, src model.url ] []
                 ]
 
         Just image ->
-            img [ class "elm-image-cropper__image", imageStyle model, src image.src ] []
+            img (List.append (imageStyle model) [ class "elm-image-cropper__image", src image.src ]) []
 
 
 imageOnLoad : Attribute Msg
