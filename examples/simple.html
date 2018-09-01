@@ -8,10 +8,9 @@
 	<link rel="stylesheet" href="style.css">
 </head>
 <body>
+<div id="app"></div>
 <script src="app.js"></script>
-<script>
-	Elm.Simple.fullscreen();
-</script>
+<script>Elm.Simple.init({node: document.getElementById("app")});</script>
 <footer>
 	<p>Available on <a href="http://package.elm-lang.org/packages/mikaxyz/elm-cropper/latest">Elm packages</a>. Report issues on <a href="https://github.com/mikaxyz/elm-cropper">Github</a>.</p>
 </footer>

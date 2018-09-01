@@ -1,9 +1,10 @@
-port module Main exposing (..)
+port module Main exposing (Model, Msg(..), cropInfoItems, cropperData, cropperWithImage, init, main, showRound, sourceInfoItems, subscriptions, update, view)
 
+import Browser exposing (element)
+import Cropper
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onInput, onClick)
-import Cropper
+import Html.Events exposing (onClick, onInput)
 
 
 port cropperWithImage : (Cropper.ImageData -> msg) -> Sub msg
@@ -12,9 +13,9 @@ port cropperWithImage : (Cropper.ImageData -> msg) -> Sub msg
 port cropperData : Cropper.CropData -> Cmd msg
 
 
-main : Program Never Model Msg
+main : Program () Model Msg
 main =
-    Html.program
+    Browser.element
         { init = init
         , view = view
         , update = update
@@ -22,8 +23,8 @@ main =
         }
 
 
-init : ( Model, Cmd Msg )
-init =
+init : () -> ( Model, Cmd Msg )
+init _ =
     ( { cropper =
             Cropper.init
                 { url = "assets/kittens-1280x711.jpg"
@@ -73,16 +74,16 @@ update msg model =
                 ( updatedSubModel, subCmd ) =
                     Cropper.update subMsg model.cropper
             in
-                ( { model | cropper = updatedSubModel }, Cmd.map ToCropper subCmd )
+            ( { model | cropper = updatedSubModel }, Cmd.map ToCropper subCmd )
 
         Zoom zoom ->
-            ( { model | cropper = Cropper.zoom model.cropper (Result.withDefault 0 (String.toFloat zoom)) }, Cmd.none )
+            ( { model | cropper = Cropper.zoom model.cropper (Maybe.withDefault 0 (String.toFloat zoom)) }, Cmd.none )
 
         PivotX x ->
-            ( { model | cropper = Cropper.pivotX model.cropper (Result.withDefault 0 (String.toFloat x)) }, Cmd.none )
+            ( { model | cropper = Cropper.pivotX model.cropper (Maybe.withDefault 0 (String.toFloat x)) }, Cmd.none )
 
         PivotY y ->
-            ( { model | cropper = Cropper.pivotY model.cropper (Result.withDefault 0 (String.toFloat y)) }, Cmd.none )
+            ( { model | cropper = Cropper.pivotY model.cropper (Maybe.withDefault 0 (String.toFloat y)) }, Cmd.none )
 
         CropImage data ->
             ( { model | cropper = Cropper.init data }, Cmd.none )
@@ -124,14 +125,14 @@ view model =
         , div [ class "controls" ]
             [ p [ class "controls__row" ]
                 [ label [] [ text "Z" ]
-                , input [ onInput Zoom, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString model.cropper.zoom) ] []
+                , input [ onInput Zoom, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (String.fromFloat model.cropper.zoom) ] []
                 , span [] [ text <| showRound 4 model.cropper.zoom ]
                 ]
             , p [ class "controls__row" ]
                 [ label [] [ text "X" ]
-                , input [ onInput PivotX, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString model.cropper.pivot.x) ] []
+                , input [ onInput PivotX, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (String.fromFloat model.cropper.pivot.x) ] []
                 , label [] [ text "Y" ]
-                , input [ onInput PivotY, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (toString model.cropper.pivot.y) ] []
+                , input [ onInput PivotY, type_ "range", Html.Attributes.min "0", Html.Attributes.max "1", Html.Attributes.step "0.0001", value (String.fromFloat model.cropper.pivot.y) ] []
                 ]
             , button [ class "controls__button", onClick <| ExportImage ] [ text "Crop" ]
             ]
@@ -153,30 +154,30 @@ showRound : Int -> Float -> String
 showRound d value =
     let
         f =
-            (round (value * toFloat (10 ^ d))) % (10 ^ d)
+            modBy (10 ^ d) (round (value * toFloat (10 ^ d)))
     in
-        toString (floor value) ++ "." ++ (String.padLeft d '0' <| toString f)
+    String.fromInt (floor value) ++ "." ++ (String.padLeft d '0' <| String.fromInt f)
 
 
 sourceInfoItems : Cropper.Model -> Html Msg
 sourceInfoItems model =
-    case (model.image) of
+    case model.image of
         Nothing ->
             div [ class "info-bar" ] []
 
         Just image ->
-            div [ class "info-bar", style [ ( "max-width", toString model.crop.width ++ "px" ) ] ]
-                [ span [] [ "W: " ++ toString image.width |> text ]
-                , span [] [ "H: " ++ toString image.height |> text ]
+            div [ class "info-bar", style "max-width" (String.fromInt model.crop.width ++ "px") ]
+                [ span [] [ "W: " ++ String.fromInt image.width |> text ]
+                , span [] [ "H: " ++ String.fromInt image.height |> text ]
                 , span [ class "fill" ] [ "SRC: " ++ image.src |> text ]
                 ]
 
 
 cropInfoItems : Cropper.Model -> Html Msg
 cropInfoItems model =
-    div [ class "info-bar", style [ ( "max-width", toString model.crop.width ++ "px" ) ] ]
+    div [ class "info-bar", style "max-width" (String.fromInt model.crop.width ++ "px") ]
         [ span [] [ "W: " ++ showRound 2 (Cropper.imageSize model).x |> text ]
         , span [] [ "H: " ++ showRound 2 (Cropper.imageSize model).y |> text ]
-        , span [] [ "X: " ++ toString (floor (Cropper.cropOrigin model).x) |> text ]
-        , span [] [ "Y: " ++ toString (floor (Cropper.cropOrigin model).y) |> text ]
+        , span [] [ "X: " ++ String.fromInt (floor (Cropper.cropOrigin model).x) |> text ]
+        , span [] [ "Y: " ++ String.fromInt (floor (Cropper.cropOrigin model).y) |> text ]
         ]

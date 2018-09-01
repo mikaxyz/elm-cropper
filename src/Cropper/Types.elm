@@ -1,9 +1,33 @@
-module Cropper.Types exposing (..)
+module Cropper.Types exposing
+    ( CropData
+    , Drag
+    , Image
+    , ImageData
+    , Model
+    , Msg(..)
+    , Point
+    , Position
+    , Rect
+    , Rectangle
+    , Vector
+    , decodeImage
+    )
 
+import Browser.Dom
+import Browser.Events exposing (..)
 import DOM
-import Mouse exposing (Position)
-import SingleTouch exposing (SingleTouch)
+import Html.Events.Extra.Touch exposing (Touch)
 import Json.Decode exposing (Decoder)
+
+
+type alias Rectangle =
+    DOM.Rectangle
+
+
+type alias Position =
+    { x : Int
+    , y : Int
+    }
 
 
 type alias Drag =
@@ -19,16 +43,16 @@ type Msg
     | DragStart Position
     | DragAt Position
     | DragEnd Position
-    | OnTouchStart SingleTouch
-    | OnTouchMove SingleTouch
-    | OnTouchEnd SingleTouch
+    | OnTouchStart ( Float, Float )
+    | OnTouchMove ( Float, Float )
+    | OnTouchEnd ( Float, Float )
 
 
 type alias Model =
     { url : String
     , crop : Rect
     , image : Maybe Image
-    , boundingClientRect : DOM.Rectangle
+    , boundingClientRect : Rectangle
     , pivot : Vector
     , zoom : Float
     , drag : Maybe Drag

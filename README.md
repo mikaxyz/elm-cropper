@@ -18,8 +18,8 @@ A minimalistic fluid width/responsive image cropper created in Elm.
 ## Usage
 The examples should be enough to see how to integrate in your app.
 
-* For integration with JS the [full example](https://mika.xyz/elm-cropper/1.0/examples/) has basic functionality to create images using a canvas
-* The [simple example](https://mika.xyz/elm-cropper/1.0/examples/simple.html) has only the most basic functionality required by Elm Architecture
+* For integration with JS the [full example](https://mika.xyz/elm-cropper/latest/examples/) has basic functionality to create images using a canvas
+* The [simple example](https://mika.xyz/elm-cropper/latest/examples/simple.html) has only the most basic functionality required by Elm Architecture
 
 ## Build examples
 	npm install

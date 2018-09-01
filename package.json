@@ -6,12 +6,14 @@
   "main": "index.html",
   "scripts": {
     "test": "elm-test",
-    "build": "elm-make --yes ./examples/Main.elm ./examples/Simple.elm --output=./examples/app.js && lessc --compress ./examples/style.less ./examples/style.css"
+    "build": "cd examples && elm make Main.elm Simple.elm --optimize --output=app.js && cd - && lessc --compress ./examples/style.less ./examples/style.css"
   },
   "author": "me@mika.xyz",
   "license": "ISC",
   "devDependencies": {
-    "elm": "^0.18.0",
+    "elm": "~0.19.0-bugfix2",
+    "elm-format": "~0.8.0",
+    "elm-upgrade": "~0.19.1",
     "elm-test": "^0.18.2",
     "less": "^2.7.1"
   }
